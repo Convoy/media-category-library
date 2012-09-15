@@ -5,16 +5,18 @@ class WPMediaCategory {
         /**
         *Variables
         */
-	const nspace = 'wpmediacat';
-	const pname = 'Media Category';
+        const nspace = 'wpmediacat';
+        const pname = 'Media Category';
+        const term = 'mediacategory'
+        const version = 0.1;
         protected $_plugin_file;
         protected $_plugin_dir;
         protected $_plugin_path;
         protected $_plugin_url;
 
-	var $settings_fields = array();
-	var $settings_data = array();
-	var $debug = false;
+    	var $settings_fields = array();
+    	var $settings_data = array();
+    	var $debug = false;
 
         /**
         *Constructor
@@ -24,7 +26,7 @@ class WPMediaCategory {
         */
         function __construct() {}
 
-	/**
+	    /**
         *Init function
         *
         *@return void
@@ -38,164 +40,443 @@ class WPMediaCategory {
 
 		if ( is_admin() ) {
 
-			add_action( 'admin_menu', array( &$this, 'add_settings_page' ), 30 );
+                        // add menus
+
+			add_action( 'admin_menu', array( &$this, 'add_admin_menus' ), 30 );
+                        
+                        // enqueue css/js
+
+                        add_action( 'admin_enqueue_scripts', array( &$this, 'add_admin_scripts' ), 10, 1 );
 
 			// settings fields
 
-			$this->settings_fields = array(
-							'legend_1' => array(
-									'label' => __( 'General Settings', self::nspace ),
-									'type' => 'legend'
-									),
-							'js_domain' => array(
-									'label' => __( 'JavaScript Domain', self::nspace ),
-									'type' => 'text',
-									'default' => get_option( 'siteurl' )
-									),
-							'cachetime' => array(
-									'label' => __( 'Cache Expiration', self::nspace ),
-									'type' => 'select',
-									'values' => array( '60' => '1 minute', '300' => '5 minutes', '900' => '15 minutes', '1800' => '30 minutes', '3600' => '1 hour' ),
-									'default' => '300'
-									),
-							'htaccess_user_pw' => array(
-                                                                        'label' => __( 'Username and Password (if behind htaccess authentication -- syntax: username:password)', self::nspace ),
-                                                                        'type' => 'text',
-                                                                        'default' => 'username:password'
-                                                                        ),
-							'ignore_files' => array(
-                                                                        'label' => __( 'JS Files to Ignore (one per line)', self::nspace ),
-                                                                        'type' => 'textarea'
-                                                                        )
-						);
+			$this->settings_fields = array();
 		}
-		elseif ( strstr( $_SERVER['REQUEST_URI'], 'wp-login' ) || strstr( $_SERVER['REQUEST_URI'], 'gf_page=' ) || strstr( $_SERVER['REQUEST_URI'], 'preview=' ) ) {}
-		else {
-			add_action( 'wp_print_scripts', array( $this, 'gather_js' ), 500 );
-			add_action( 'wp_head', array( $this, 'install_combined_js' ), 500 );
-			add_action( 'wp_footer', array( $this, 'install_combined_js_footer' ), 500 );
 
-			/* get rid of browser prefetching of next page from link rel="next" tag */
+                // add custom rewrites
 
-			remove_action('wp_head', 'adjacent_posts_rel_link_wp_head');
-			remove_action('wp_head', 'adjacent_posts_rel_link');
-		}
+                add_filter( 'generate_rewrite_rules', array( &$this, 'media_category_rewrites' ) );
+                add_filter( 'query_vars', array( &$this, 'media_category_query_vars_actions' ) );
+                add_action( 'parse_request', array( &$this, 'media_category_parse_request_actions' ) );
         }
 
         /**
-        *Cached expired
-        *
-        *@return boolean
-        *@since 0.1
-        */
-	function cache_expired ( $path ) {
-		$mtime = 0;
-		if( file_exists( $path ) ) $mtime = @filemtime( $path );
-		$now = time();
-		$transpired = $now - $mtime;
-		if ( $transpired > $this->cachetime ) return true;
-		return false;
-	}
-
-        /**
-        *File exists
-        *
-        *@return boolean
-        *@since 0.1
-        */
-	function file_exists ( $src ) {
-		if ( @strlen( $src ) && file_exists( ABSPATH . $src ) ) return true;
-		return false;
-	}
-
-        /**
-        *Get file from source
-        *
-        *@return string
-        *@since 0.1
-        */
-	function get_file_from_src ( $src ) {
-		$frags = explode( '/', $src );
-		return $frags[count( $frags ) -1];
-	}
-
-        /**
-        *Gather javascript
+        *Rewrites function
         *
         *@return void
         *@since 0.1
         */
-        function gather_js () {
+        function media_category_rewrites( $wpr ) {
+                $rules = array(
+                        'document\-pages/(\d+)/?' => 'index.php?mediacat_pages=1&attachment_id=' .
+                                $wpr->preg_index(1),
+                        'document\-library/(\d+)/(.*)/(.*)/?' => 'index.php?mediacat_library=1&mediacat_page=' .
+                                $wpr->preg_index(1) . '&mediacats=' . $wpr->preg_index(2) . '&mediacat_keyword=' . $wpr->preg_index(3),
+                        'document\-library/(\d+)/(.*)/?' => 'index.php?mediacat_library=1&mediacat_page=' .
+                                $wpr->preg_index(1) . '&mediacats=' . $wpr->preg_index(2),
+                        'document\-library/?$' => 'index.php?mediacat_library=1',
+                );
+                $wpr->rules = $rules + $wpr->rules;
+        }
 
-		if ( is_admin() ) return;
+        /**
+        *Query vars function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function media_category_query_vars_actions( $query_vars ) {
+                $query_vars[] = 'mediacat_library';
+                $query_vars[] = 'mediacat_page';
+                $query_vars[] = 'mediacat_keyword';
+                $query_vars[] = 'mediacat_pages';
+                $query_vars[] = 'attachment_id';
+                $query_vars[] = 'mediacats';
+                return $query_vars;
+        }
 
-		$this->debug( 'Function gather_js' );
+        /**
+        *Body class function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function body_class ( $classes ) {
+                $classes[] = self::nspace;
+                return $classes;
+        }
 
-                global $wp_scripts;
-
-		// loop through all scripts and store them in options
-
-		$queue = $wp_scripts->queue;
-                $wp_scripts->all_deps( $queue );
-                $to_do = $wp_scripts->to_do;
-                foreach ( $to_do as $key => $handle ) {
-                        $js_src = $this->strip_domain( $wp_scripts->registered[$handle]->src );
-                        $js_file = $this->get_file_from_src( $js_src );
-                        if ( $wp_scripts->registered[$handle]->extra['data'] ) {
-                                echo "<script type='text/javascript'>/* <![CDATA[ */ ";
-                                echo $this->compress( $wp_scripts->registered[$handle]->extra['data'], $handle . ' l10n' ) . "\n";
-                                echo " /* ]]> */ </script>";
+        /**
+        *Parse request function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function media_category_parse_request_actions( &$wp ) {
+                if ( array_key_exists( 'mediacat_library', $wp->query_vars ) ) {
+                        if ( array_key_exists( 'mediacat_page', $wp->query_vars ) ) {
+                                $_REQUEST['pnum'] = $wp->query_vars['mediacat_page'];
                         }
-                        elseif ( $wp_scripts->registered[$handle]->extra['l10n'] ) {
-                                $vars = array();
-                                foreach ( $wp_scripts->registered[$handle]->extra['l10n'][1] as $key => $val ) {
-                                        $vars[] = "\t\t\t" . $key . ': "' . $val . '"';
+                        else {
+                                if ( ! $_REQUEST['media_category_submit'] ) {
+                                        foreach ( get_media_categories() as $slug => $name ) $_REQUEST['media-categories'][] = $slug;
                                 }
-				$extra = "<script type='text/javascript'>/* <![CDATA[ */ ";
-				$extra .= "var " . $wp_scripts->registered[$handle]->extra['l10n'][0] . " = { " . implode( ",\n", $vars ) . " }; ";
-				$extra .= " /* ]]> */ </script>";
-				echo $this->compress( $extra, $handle . ' l10n' ) . "\n";
                         }
-                        if( ! in_array( $js_file, $this->js_files_ignore ) && @strlen( $js_src ) && $this->file_exists( $js_src ) ) {
-				$this->debug( '     -> found ' . $js_src );
-				$this->js_handles_found[$handle] = $js_src;
-				unset( $wp_scripts->to_do[$key] );
+                        if ( array_key_exists( 'mediacats', $wp->query_vars ) ) {
+                                $_REQUEST['media-categories'] = explode( ',', $wp->query_vars['mediacats'] );
                         }
+                        if ( array_key_exists( 'mediacat_keyword', $wp->query_vars ) ) {
+                                $_REQUEST['keyword'] = $wp->query_vars['mediacat_keyword'];
+                        }
+                        add_filter( 'body_class', array( &$this, 'body_class' ) );
+                        include $this->get_plugin_path() . '/views/search.php';
+                        exit;
+                }
+                elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
+                        global $wpdb;
+
+                        // get file name
+
+                        $row = $wpdb->get_row( "SELECT guid FROM " . $wpdb->posts . " WHERE ID = '" . $wpdb->escape( $wp->query_vars['attachment_id'] ) . "'", ARRAY_A );
+                        $file_name = basename( $row['guid'] );
+
+                        // get pages or posts that reference this file
+
+                        $sql = "SELECT SQL_CALC_FOUND_ROWS ID FROM " . $wpdb->posts .
+                                " WHERE post_type <> 'revision' AND post_content LIKE '" . $wpdb->escape( '%' . $file_name . '%' ) . "'";
+                        $results = $wpdb->get_results( $sql, ARRAY_A );
+                        $sql = 'SELECT FOUND_ROWS() AS found_rows';
+                        $row = $wpdb->get_row( $sql, ARRAY_A );
+                        echo '<h3>Pages that include the following document: ' . $file_name . '</h3>';
+                        $label = 'pages';
+                        if ( $row['found_rows'] == 1 ) $label = 'page';
+                        echo '<h4>' . $row['found_rows'] . ' ' . $label . ' found.</h4>';
+                        if ( $row['found_rows'] > 0 ) {
+                ?>
+                        <ul style="list-style:disc; margin: 50px 0 0 100px;">
+                <?php foreach ( $results as $result ): ?>
+                                <li><a href="<?php echo admin_url(); ?>post.php?post=<?php echo $result['ID']; ?>&action=edit"><?php echo get_the_title( $result['ID'] ); ?></a></li>
+                <?php endforeach; ?>
+                        </ul>
+
+                <?php
+                        }
+                        echo '<p style="margin-top: 100px;text-align:center"><a href="#" onclick="parent.tb_remove();return false;">';
+                        _e( 'Close', 'convoy-theme' );
+                        echo '</a></p>';
+                        exit;
+                }
+        }
+
+        /**
+        *Media category library
+        *
+        *@return void
+        *@since 0.1
+        */
+        function mediacat_library ( $frontend = false ) {
+
+                global $wpdb;
+
+                if ( $_REQUEST['document_id'] ) {
+                        $date = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
+                        $sql = "UPDATE wp_posts SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
+                                "post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['document_id'];
+                        $wpdb->query( $sql );
+?>
+                        <div id="setting-error-settings_updated" class="updated settings-error"><p><strong>Document date updated successfully.</strong></p></div>
+<?php
                 }
 
-                // get name of file based on md5 hash of js handles
+                // set terms
 
-                $file_name = 'wpcjp-' . md5( implode( '', array_keys( $this->js_handles_found ) ) );
+                $selected_terms = array();
+                if ( $_REQUEST['cat'] ) $selected_terms[] = "'" . $wpdb->escape( $_REQUEST['cat'] ) . "'";
+                elseif ( $_REQUEST['media-categories'] ) {
+                        foreach ( $_REQUEST['media-categories'] as $cat ) $selected_terms[] = "'" . $wpdb->escape( $cat ) . "'";
+                }
+                else {
+                        foreach ( get_media_categories() as $slug => $name )
+                                $selected_terms[] = "'" . $wpdb->escape( $slug ) . "'";
+                }
 
-                // set paths
+                // pagination settings
 
-                $this->js_path = $this->wpcjp_path . $file_name . '.js';
-                $this->js_path_footer = $this->wpcjp_path . $file_name . '-footer.js';
-                $this->js_uri = $this->wpcjp_uri . $file_name . '.js';
-                $this->js_footer_uri = $this->wpcjp_uri . $file_name . '-footer.js';
-                $this->js_path_tmp = $this->js_path . '.tmp';
-                $this->js_path_footer_tmp = $this->js_path_footer . '.tmp';
+                $posts_per_page = 20;
+                $page = $_REQUEST['pnum'];
+                if ( ! $page ) $page = 0;
+                else $page -= 1;
+                $start = $page * $posts_per_page;
+                $start_record = $start + 1;
 
-		if ( $this->cache_expired( $this->js_path ) && $this->cache_expired( $this->js_path_tmp )
-			&& $this->cache_expired( $this->js_path_footer ) && $this->cache_expired( $this->js_path_footer_tmp ) )  {
-			$this->create_cache = true;
-		}
+                // subquery for media categories
 
-		// loop through and unset scripts
+                $sub_sql = "SELECT x.term_taxonomy_id FROM " . $wpdb->term_taxonomy . " AS x " .
+                        "LEFT JOIN " . $wpdb->terms . " AS t ON x.term_id = t.term_id WHERE " .
+                        "t.slug IN(" . implode( ",", $selected_terms ) . ")";
 
-		foreach ( $to_do as $key => $handle ) {
-			$js_src = $this->strip_domain( $wp_scripts->registered[$handle]->src );
-			$js_file = $this->get_file_from_src( $js_src );
-			if( ! in_array( $js_file, $this->js_files_ignore )  && $this->file_exists( $js_src ) ) {
-				wp_deregister_script( $handle );
-			}
-		}
+                // main query that uses subquery
 
-		foreach ( $wp_scripts->queue as $key => $handle ) {
-			if ( isset( $this->js_handles_found[$handle] ) ) {
-				unset( $wp_scripts->queue[$key] );
-			}
-		}
+                $sql = "SELECT SQL_CALC_FOUND_ROWS p.ID, p.post_title, p.post_mime_type, p.post_excerpt, p.post_date FROM " . $wpdb->posts . " AS p " .
+                        "LEFT JOIN " . $wpdb->term_relationships . " AS r ON p.ID = r.object_id " .
+                        "WHERE r.term_taxonomy_id IN($sub_sql) AND p.post_type='attachment' ";
+
+                // keyword
+
+                if ( $_REQUEST['keyword'] ) {
+                        $where = array();
+                        $k_fields = array( 'post_title', 'post_excerpt', 'post_content', 'guid' );
+                        $keyword = "'%" . $wpdb->escape( $_REQUEST['keyword'] ) . "%'";
+                        foreach ( $k_fields as $field ) {
+                                $where[] = "$field LIKE $keyword";
+                        }
+                        $sql .= "AND (" . implode( " OR ", $where ) . ") ";
+                }
+
+                // order by and limit for pagination
+
+                $sql .= "ORDER BY p.post_title LIMIT $start, " . $posts_per_page;
+
+                //echo "<p>$sql</p>";
+
+                // get results, found rows, and total pages
+
+                $results = $wpdb->get_results( $sql, ARRAY_A );
+                $sql = 'SELECT FOUND_ROWS() AS found_rows';
+                $row = $wpdb->get_row( $sql, ARRAY_A );
+                $total_pages = ceil( $row['found_rows'] / $posts_per_page );
+
+?>
+<br clear="all">
+<div class="wrap">
+        <div class="icon32" id="icon-upload"><br></div>
+           <?php if ( ! $frontend ): ?>
+        <h2><?php _e( self::pname . ' Library', 'convoy-theme' ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', 'convoy-theme' ); ?></a></h2>
+           <?php endif; ?>
+<?php if ( ! $frontend ): ?>
+        <div class="tablenav top">
+                <form id="doc-library-search-form">
+                <div class="alignleft actions">
+                        <?php _e( 'View By Category', 'convoy-theme' ); ?>: <select name="doc-library-cat" id="doc-library-cat">
+                                <option value="">-- <?php _e( 'All', 'convoy-theme' ); ?> --</option>
+<?php foreach ( get_media_categories() as $slug => $name ): ?>
+                                <option value="<?php echo $slug; ?>"<?php if ( $slug == $_REQUEST['cat'] ): ?> selected<?php endif; ?>><?php echo $name; ?></option>
+<?php endforeach; ?>
+                        </select>
+                </div>
+                <div class="alignleft actions">
+                        <input type="text" id="doc-library-keyword" name="doc-library-keyword" value="<?php echo $_REQUEST['keyword']; ?>"> <input type="button" id="doc-library-search" class="button button-secondary action" value="<?php _e( 'Search', 'convoy-theme' ); ?>">
+        </div>
+           </form>
+<?php endif; ?>
+
+<?php
+        $pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
+        if ( $row['found_rows'] ) $this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
+        else echo '<p>' . __( 'No results found.', 'convoy-theme' ) . '</p>';
+        }
+
+        /**
+        *Media categories
+        *
+        *@return array
+        *@since 0.1
+        */
+        function get_media_categories () {
+                global $wpdb;
+                $sql = "SELECT DISTINCT t.name, t.slug FROM wp_term_relationships AS r " .
+                        "LEFT JOIN wp_term_taxonomy AS x ON x.term_taxonomy_id = r.term_taxonomy_id " .
+                        "LEFT JOIN wp_terms AS t ON t.term_id = x.term_id where r.term_taxonomy_id " .
+                        "IN( SELECT term_taxonomy_id FROM wp_term_taxonomy WHERE taxonomy='imagetype') ORDER BY t.name";
+                $results = $wpdb->get_results( $sql, ARRAY_A );
+                $mediacats = array();
+                foreach ( $results as $result ) $mediacats[$result['slug']] = $result['name'];
+                return $mediacats;
+        }
+
+        /**
+        *Media categories library list
+        *
+        *@return void
+        *@since 0.1
+        */
+        function mediacat_library_list( $results, $total_records, $frontend = false, $start_record, $posts_per_page, $total_pages, $pagination ) {
+?>
+<?php if ( $frontend ): ?>
+<?php if ( $pagination ): ?>
+        <div class="pagination docs-pagination">
+                <div class="pagination-details">
+                <?php echo get_mediacat_library_pagination_details( $start_record, $posts_per_page, $total_records, $total_pages, $pagination ); ?>
+                </div>
+        </div>
+<?php endif; ?>
+<?php else: ?>
+        <div class="tablenav-pages pagination-records">
+                <span class="displaying-num"><?php echo $total_records; ?> <?php _e( 'document(s) found', 'convoy-theme' ); ?></span>
+<?php if ( $pagination ): ?>
+                <span class="pagination-links">
+                        <?php echo $pagination; ?>
+                </span>
+<?php endif; ?>
+        </div>
+<?php endif; ?>
+        <table class="widefat responsive">
+                <thead>
+                        <tr>
+                                            <th><?php _e( 'Title', 'convoy-theme' ); ?></th>
+                                            <th><?php _e( 'File', 'convoy-theme' ); ?></th>
+                                            <th><?php _e( 'Type', 'convoy-theme' ); ?></th>
+                                            <th><?php _e( 'Category', 'convoy-theme' ); ?></th>
+                                            <th><?php _e( 'Caption', 'convoy-theme' ); ?></th>
+                                            <th><?php _e( 'Date', 'convoy-theme' ); ?></th>
+                                            <?php if ( ! $frontend ): ?><th><?php _e( 'Options', 'convoy-theme' ); ?></th><?php endif; ?>
+                                    </tr>
+                </thead>
+<?php foreach ( $results as $result ): ?>
+                <tbody>
+                        <tr>
+<?php $link = wp_get_attachment_url( $result['ID'] ); ?>
+                                <td><a target="_BLANK" href="<?php echo $link; ?>"><?php echo $result['post_title']; ?></a></td>
+                                <td><?php echo basename( $link ); ?></td>
+                                <td><?php echo $result['post_mime_type']; ?></td>
+<?php
+        $mediacats = array();
+        $terms = wp_get_object_terms( $result['ID'], 'imagetype' );
+        foreach ( $terms as $term ) $mediacats[] = $term->name;
+        $time_format = get_option( 'date_format' ) . ' ' .  get_option( 'time_format' );
+?>
+                                <td><?php echo implode( ', ', $mediacats ); ?></td>
+                                <td style="width: 40%"><?php echo $result['post_excerpt']; ?></td>
+                                <td>
+<?php $date = get_the_time( 'm/d/Y', $result['ID'] ); ?>
+<?php if ( $frontend ): ?>
+                                        <abbr title="<?php echo get_the_time( 'M j, Y', $result['ID'] ); ?>"><?php echo $date; ?></abbr>
+<?php else: ?>
+<?php list ( $month, $day, $year ) = explode( "/", $date ); ?>
+                                        <form action="<?php echo get_mediacat_library_admin_url(); ?>" method="post">
+                                                <select name="month">
+                                        <?php for( $i = 1; $i <= 12; $i++ ): ?>
+                                        <?php $months = array( '01'=>'Jan','02'=>'Feb','03'=>'Mar','04'=>'Apr','05'=>'Mar','06'=>'Jun','07'=>'Jul','08'=>'Aug','09'=>'Sept','10'=>'Oct','11'=>'Nov','12'=>'Dec' ); ?>
+                                        <?php if ( $i < 10 ) $i = '0' . $i; ?>
+                                                        <option value="<?php echo $i; ?>"<?php if ( $month == $i ): ?> selected<?php endif; ?>><?php echo $months[$i]; ?></option>
+                                        <?php endfor; ?>
+                                                </select>
+
+                                                <select name="day">
+                                        <?php for( $i = 1; $i <= 31; $i++ ): ?>
+                                        <?php if ( $i < 10 ) $i = '0' . $i; ?>
+                                                        <option value="<?php echo $i; ?>"<?php if ( $day == $i ): ?> selected<?php endif; ?>><?php echo $i; ?></option>
+                                        <?php endfor; ?>
+                                                </select>
+
+                                                <select name="year">
+                                        <?php for( $i = ( date( 'Y' ) - 20 ); $i <= ( date( 'Y' ) + 1 ); $i++ ): ?>
+                                        <?php if ( $i < 10 ) $i = '0' . $i; ?>
+                                                        <option value="<?php echo $i; ?>"<?php if ( $year == $i ): ?> selected<?php endif; ?>><?php echo $i; ?></option>
+                                        <?php endfor; ?>
+                                                </select>
+                                                <input type="hidden" name="document_id" value="<?php echo $result['ID']; ?>">
+                                                <input type="submit" value="Change Date">
+                                        </form>
+<?php endif; ?>
+                                </td>
+<?php if ( ! $frontend ): ?>
+                                <td>
+                                        <ul>
+                                                <li><a href="<?php echo admin_url(); ?>media.php?attachment_id=<?php echo $result['ID']; ?>&action=edit"><?php _e( 'Edit', 'convoy-theme' ); ?></a></li>
+                                                <li><a class="thickbox" href="/document-pages/<?php echo $result['ID']; ?>/"><?php _e( 'Pages', 'convoy-theme' ); ?></a></li>
+                                        </ul>
+                                </td>
+<?php endif; ?>
+                        </tr>
+                </tbody>
+<?php endforeach; ?>
+        </table>
+<?php if ( $frontend ): ?>
+        <div class="pagination-details">
+                <?php echo get_mediacat_library_pagination_details( $start_record, $posts_per_page, $total_records, $total_pages, $pagination ); ?>
+        </div>
+<?php else: ?>
+        <div class="tablenav-pages pagination-records">
+                <span class="displaying-num"><?php echo $total_records; ?> <?php _e( 'document(s) found', 'convoy-theme' ); ?></span>
+<?php if ( $pagination ): ?>
+                <span class="pagination-links">
+                        <?php echo $pagination; ?>
+                </span>
+<?php endif; ?>
+        </div>
+<?php endif; ?>
+<?php
+        }
+
+        /**
+        *Pagination
+        *
+        *@return void
+        *@since 0.1
+        */
+        function get_mediacat_library_pagination( $total_pages, $page, $frontend = false ) {
+
+                if ( ! $_REQUEST['pnum'] ) $_REQUEST['pnum'] = 1;
+
+                if ( ! $_REQUEST['media-categories'] ) $_REQUEST['media-categories'][] = 'none';
+
+                $prev_link = '/document-library/' . ( $_REQUEST['pnum'] - 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
+                if ( $_REQUEST['keyword'] ) $prev_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
+                $next_link = '/document-library/' . ( $_REQUEST['pnum'] + 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
+                if ( $_REQUEST['keyword'] ) $next_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
+
+                if ( ! $frontend ) {
+                        $tmp = array();
+                        if ( ! $_REQUEST['pnum'] ) $_REQUEST['pnum'] = 1;
+                        foreach ( array( 'cat','keyword' ) as $item ) {
+                                if ( $_REQUEST[$item] ) $tmp[] = $item . '=' . rawurlencode( $_REQUEST[$item] );
+                        }
+                        $prev_link = get_mediacat_library_admin_url() . '&pnum=' . ( $_REQUEST['pnum'] - 1 );
+                        $next_link = get_mediacat_library_admin_url() . '&pnum=' . ( $_REQUEST['pnum'] + 1 );
+                }
+                $previous = '<a title="' . __('Previous', 'convoy-theme' ) . '" class="prev-page" href="' . $prev_link . '">&lsaquo;</a>';
+                $next = '<a title="' . __('Next', 'convoy-theme' ) . '" class="next-page" href="' . $next_link . '">&rsaquo;</a>';
+                if ( $_REQUEST['pnum'] > 1 && $_REQUEST['pnum'] < $total_pages ) return $previous . $next;
+                if ( $_REQUEST['pnum'] == $total_pages && $total_pages > 1 ) return $previous;
+                elseif ( $total_pages > 1 ) return $next;
+        }
+
+        /**
+        *Admin url
+        *
+        *@return string
+        *@since 0.1
+        */
+        function get_mediacat_library_admin_url() {
+                $tmp = array();
+                if ( ! $_REQUEST['pnum'] ) $_REQUEST['pnum'] = 1;
+                foreach ( array( 'cat','keyword' ) as $item ) {
+                        if ( $_REQUEST[$item] ) $tmp[] = $item . '=' . rawurlencode( $_REQUEST[$item] );
+                }
+                $url = admin_url() . 'upload.php?page=document-libary';
+                if ( $tmp ) $url .= '&' . implode( '&', $tmp );
+                return $url;
+        }
+
+        /**
+        *Pagination details
+        *
+        *@return string
+        *@since 0.1
+        */
+        function get_mediacat_library_pagination_details( $start_record, $posts_per_page, $total_records, $total_pages, $pagination = '' ) {
+                $page = $_REQUEST['pnum'];
+                if ( ! $page ) $page = 1;
+                if ( ! $start_record ) $start_record = 1;
+                $end_record = ( $start_record + $posts_per_page - 1 );
+                if ( $end_record > $total_records ) $end_record = $total_records;
+                if ( $pagination != '' ) $total_pages = $total_pages . ' <span class="pagination-links">' . $pagination . '</span>';
+                return '<div class="pagination-records">' . __( 'Displaying', 'convoy-theme' ) . ' ' .
+                        $start_record . ' &mdash; ' . $end_record . ' ' . __( 'of', 'convoy-theme' ) . ' ' .
+                        $total_records . ' ' . __( 'total records', 'convoy-theme' ) . '</div>' .
+                        '<div class="pagination-pages">' . __( 'Page', 'convoy-theme' ) . ' ' . $page . ' ' . __( 'of', 'convoy-theme' ) .
+                        ' ' . $total_pages . '</div>';
         }
 
 	/**
@@ -211,223 +492,36 @@ class WPMediaCategory {
 	}
 
         /**
-        *Combine javascript
+        *Add admin menus
         *
         *@return void
         *@since 0.1
         */
-	function combine_js () {
-
-		$this->debug( 'Function combine_js' );
-
-		// if no scripts found, return
-
-		if ( ! @count( @array_keys( $this->js_handles_found ) ) ) {
-			$this->debug( '     -> no handles found' );
-			return;
-		}
-
-		// loop through found scripts and cache them to file system
-
-		$header_content = $footer_content = '';
-		foreach ( $this->js_handles_found as $handle => $js_src ) {
-			$js_file = $this->get_file_from_src( $js_src );
-			if( $this->file_exists( $js_src ) && ! in_array( $js_file, $this->js_files_ignore ) ) {
-				if ( $this->create_cache && $this->cache_expired( $this->js_path ) ) {
-
-					$this->debug( "     -> caching $handle" );
-
-					// if file is a PHP script, pull content via curl
-
-					$js_content = '';
-					if ( preg_match( "/\.php/", $js_src ) ) {
-						$js_content = $this->curl_file_get_contents ( $js_src );
-					}
-					else {
-						$js_content = file_get_contents( ABSPATH . $js_src );
-					}
-					if ( $this->get_settings_value( $handle . '_position' ) == 'footer' ) {
-						$footer_content .= "/* $handle -- $js_src */\n" . $this->compress( $js_content, $handle, $js_src );
-					}
-					else {
-						$header_content .= "/* $handle -- $js_src */\n" . $this->compress( $js_content, $handle, $js_src );
-					}
-				}
-			}
-			else {
-				error_log('SRC NOT FOUND: ' . ABSPATH . $js_src );
-			}
-		}
-
-		// cache content to file system
-
-		$this->cache_content( $header_content, $footer_content );
-
-	}
-
-        /**
-        *Cache content
-        *
-        *@return void
-        *@since 0.1
-        */
-	function cache_content ( $header_content, $footer_content ) {
-		$this->debug( 'Function cache_content' );
-		if ( @strlen( $header_content ) || @strlen( $footer_content ) ) {
-			$header_file = 'js_path_tmp';
-			$footer_file = 'js_path_footer_tmp';
-			if ( @strlen( $header_content ) ) {
-				$this->cache( $header_file, $header_content );
-				update_option( self::nspace . '-js-use-header', 1 );
-			}
-			else update_option( self::nspace . '-js-use-header', 0 );
-			if ( @strlen( $footer_content ) ) {
-				$this->cache( $footer_file, $footer_content );
-				update_option( self::nspace . '-js-use-footer', 1 );
-			}
-			else update_option( self::nspace . '-js-use-footer', 0 );
-		}
-	}
-
-        /**
-        *Write data to file system
-        *
-        *@return void
-        *@since 0.1
-        */
-	function cache ( $tmp_file, $content ) {
-		if ( ! file_exists( $this->$tmp_file ) ) {
-			$fp = fopen( $this->$tmp_file, "w" );
-			if ( flock( $fp, LOCK_EX ) ) { // do an exclusive lock
-				fwrite( $fp, $content );
-				flock( $fp, LOCK_UN ); // release the lock
-			}
-			fclose( $fp );
-		}
-	}
-
-        /**
-        *Get file content via curl
-        *
-        *@return string
-        *@since 0.1
-        */
-	function curl_file_get_contents ( $src ) {
-                $url = trim( $src );
-		$url = preg_replace( "/http(|s):\/\//", "http://" . $this->get_settings_value( 'htaccess_user_pw' ) . "@", $url );
-                $c = curl_init();
-                curl_setopt( $c, CURLOPT_URL, $url );
-                curl_setopt( $c, CURLOPT_FAILONERROR, false );
-                curl_setopt( $c, CURLOPT_RETURNTRANSFER, true );
-                curl_setopt( $c, CURLOPT_VERBOSE, false );
-                curl_setopt( $c, CURLOPT_SSL_VERIFYPEER, false );
-                curl_setopt( $c, CURLOPT_SSL_VERIFYHOST, false );
-                if( count( $header ) ) {
-                        curl_setopt ( $c, CURLOPT_HTTPHEADER, $header );
+        function add_admin_menus () {
+                if ( current_user_can( 'manage_options' ) ) {
+                        add_options_page( self::pname, self::pname, 'manage_options', self::nspace . '-settings', array( &$this, 'settings_page' ) );
+                        add_media_page( self::pname . ' Library', self::pname . ' Library', '', 'media-category-libary', array( &$this, 'media_category_library' ) );
                 }
-                $contents = curl_exec( $c );
-                curl_close( $c );
-		return $contents;
-	}
-
-        /**
-        *Strip domain from path
-        *
-        *@return string
-        *@since 0.1
-        */
-	function strip_domain( $src ) {
-		$src = str_replace( array( 'http://', 'https://' ), array( '', '' ), $src );
-		$frags = explode( '/', $src );
-		array_shift( $frags );
-		return implode( '/', $frags );
-	}
-
-        /**
-        *Minify content
-        *
-        *@return string
-        *@since 0.1
-        */
-	function compress( $content, $handle, $src='' ) {
-		$this->debug( '     -> compress ' . $handle );
-		$minify = true;
-		if ( preg_match( "/(\-|\.)min/", $src ) ) {
-			$minify = false;
-		}
-		if ( $minify ) {
-			require_once $this->get_plugin_path() . '/classes/jsmin.php';
-			return JSMin::minify( $content );
-		}
-		else return $content;
-	}
-
-        /**
-        *Move temp file cache to actual file cache
-        *
-        *@return void
-        *@since 0.1
-        */
-	function install_combined_js () {
-
-		// combine javascript
-
-		$this->combine_js();
-
-		// move temp file to real path
-
-		$this->debug( 'Function install_combined_js' );
-		if ( $this->create_cache && file_exists( $this->js_path_tmp ) && $this->cache_expired( $this->js_path ) ) {
-			$this->debug( '     -> move ' . $this->js_path_tmp . ", " . $this->js_path );
-			@rename( $this->js_path_tmp, $this->js_path );
-		}
-		else {
-			$this->debug( '     -> no header install' );
-		}
-
-		// add script tag
-
-		$this->debug( 'Function add js to header' );
-		if ( get_option( self::nspace . '-js-use-header' ) && file_exists( $this->js_path ) ) {
-			$this->debug( '     -> add js tag to header' );
-			echo "\t\t" . '<script type="text/javascript" src="' . str_replace( get_option( 'siteurl' ), $this->js_domain, $this->js_uri ) . '" charset="UTF-8"></script>' . "\n";
-		}
-	}
-
-	/**
-        *Move temp file cache to actual file cache
-        *
-        *@return void
-        *@since 0.1
-        */
-        function install_combined_js_footer () {
-		$this->debug( 'Function install_combined_js_footer' );
-                if ( $this->create_cache && file_exists( $this->js_path_footer_tmp ) && $this->cache_expired( $this->js_path_footer ) ) {
-                        $this->debug( '     -> move ' . $this->js_path_footer_tmp . ", " . $this->js_path_footer );
-                        @rename( $this->js_path_footer_tmp, $this->js_path_footer );
-                }
-                else {
-                        $this->debug( '     -> no footer install' );
-                }
-
-		// add script tag
-
-		$this->debug( 'Function add_combined_js_footer' );
-		if ( get_option( self::nspace . '-js-use-footer' ) && file_exists( $this->js_path_footer ) ) {
-			$this->debug( '     -> add js tag to footer' );
-			echo "\t\t" . '<script type="text/javascript" src="' . str_replace( get_option( 'siteurl' ), $this->js_domain, $this->js_footer_uri ) . '"></script>' . "\n";
-		}
         }
 
         /**
-        *Add settings page
+        *Admin scripts
         *
         *@return void
         *@since 0.1
         */
-        function add_settings_page () {
-                if ( current_user_can( 'manage_options' ) ) {
-                        add_options_page( self::pname, self::pname, 'manage_options', 'wpcjp-settings', array( &$this, 'settings_page' ) );
+        function add_admin_scripts ( $hook ) {
+                global $post;
+                if ( $hook == 'media.php' || $hook == 'media-new.php' || $hook == 'media-upload-popup' ) {
+                        wp_enqueue_script( 'wp-media-category', $this->get_plugin_path() . '/js/media-category.js', array( 'jquery' ), self::version, true );
+                        $options = array();
+                        $terms = get_terms( self::term, 'hide_empty=0' );
+                        foreach ( $terms as $term ) $options[] = $term->name;
+                        wp_localize_script( 'wp-media-category', 'media_category', array( 'options' => $options ) );
+                }
+                elseif ( $hook == 'media_page_document-libary' ) {
+                        wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_path() . '/js/media-category-library.js', array( 'jquery' ), self::version, true );
+                        wp_enqueue_script( 'thickbox' );
                 }
         }
 
@@ -438,9 +532,7 @@ class WPMediaCategory {
         *@since 0.1
         */
         function settings_page () {
-                if($_POST['wpcjp_update_settings']) {
-                        $this->update_settings();
-                }
+                if($_POST['wpcjp_update_settings']) $this->update_settings();
                 $this->show_settings_form();
         }
 
@@ -516,18 +608,6 @@ class WPMediaCategory {
                         <input type="hidden" name="wpcjp_update_settings" value="1" />
                         <p class="submit"><input type="submit" value="Save Changes" class="button-primary" id="submit" name="submit"></p>
                 </form>
-
-                <p><strong><span style="color:red">Note: </span>You can also add GZIP compression for JavaScript files by adding the lines below to your .htaccess file</strong></p>
-                <pre>
-# BEGIN JS Compression
-&lt;FilesMatch "\.(js)"&gt;
-ForceType application/x-httpd-php
-php_value auto_prepend_file "' . $this->get_plugin_path() . '/includes/gzip-js.php"
-&lt;/FilesMatch&gt;
-
-# END JS Compression
-                </pre>
-
         </div>
 ';
         }
@@ -628,25 +708,6 @@ php_value auto_prepend_file "' . $this->get_plugin_path() . '/includes/gzip-js.p
                 update_option( self::nspace . '-settings', serialize( $data ) );
                 $this->settings_data = $data;
         }
-
-	/**
-        *Delete cache
-        *
-        *@return void
-        *@since 0.1
-        */
-	function delete_cache () {
-		foreach( glob( $this->wpcjp_path . "/*.*" ) as $file ) {
-			unlink( $file );
-		}
-		update_option( self::nspace . '-js-handles-found', serialize( array() ) );
-		$this->js_handles_found = @unserialize( get_option( self::nspace . '-js-handles-found' ) );
-		update_option( self::nspace . '-js-use-header', '' );
-		update_option( self::nspace . '-js-use-footer', '' );
-                if ( function_exists( 'wp_cache_clear_cache' ) ) {
-                        wp_cache_clear_cache();
-                }
-	}
 
         /**
         *Set plugin file

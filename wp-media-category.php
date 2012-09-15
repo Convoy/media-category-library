@@ -1,10 +1,10 @@
 <?php
 /*
-Plugin Name: WP Combine JS Plugin
+Plugin Name: WP Media Category Plugin
 Plugin URI: http://www.weareconvoy.com
 Description: WordPress plugin that attempts to combine, minify, and compress JS.
 Author: Convoy
-Version: 0.11
+Version: 0.1
 Author: Tim McDaniels
 Author URI: http://www.category4.com
 Requires at least: 3.0.0
@@ -35,29 +35,29 @@ if ( preg_match( '#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'] ) ) die();
 
 // require base objects and do instantiation
 
-if ( !class_exists( 'WPCombineJS' ) ) {
-        require_once( dirname( __FILE__ ) . '/classes/combine-js.php' );
+if ( !class_exists( 'WPMediaCategory' ) ) {
+        require_once( dirname( __FILE__ ) . '/classes/media-category.php' );
 }
-$wp_combine_js = new WPCombineJS();
+$wp_media_cat = new WPMediaCategory();
 
 // define plugin file path
 
-$wp_combine_js->set_plugin_file( __FILE__ );
+$wp_media_cat->set_plugin_file( __FILE__ );
 
 // define directory name of plugin
 
-$wp_combine_js->set_plugin_dir( basename( dirname( __FILE__ ) ) );
+$wp_media_cat->set_plugin_dir( basename( dirname( __FILE__ ) ) );
 
 // path to this plugin
 
-$wp_combine_js->set_plugin_path( dirname( __FILE__ ) );
+$wp_media_cat->set_plugin_path( dirname( __FILE__ ) );
 
 // URL to plugin
 
-$wp_combine_js->set_plugin_url( plugin_dir_url(__FILE__) );
+$wp_media_cat->set_plugin_url( plugin_dir_url(__FILE__) );
 
 // call init
 
-$wp_combine_js->init();
+$wp_media_cat->init();
 
 ?>

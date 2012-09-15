@@ -1,0 +1,58 @@
+jQuery(document).ready(function() {
+
+        // change all text fields to selects
+
+        jQuery('tr.imagetype input[type="text"]').each(function () {
+                change_to_select(jQuery(this));
+        });
+
+        // change select to text
+
+        jQuery('.add-new-category').live('click', function() {
+                var field = jQuery(this).siblings('tr.imagetype select');
+                var id = field.attr('id');
+                var val = field.val();
+                jQuery(this).remove();
+                var text = jQuery('<input type="text">');
+                text.val(val);
+                field.replaceWith(text);
+                text.attr('id',id);
+                text.attr('name',id);
+                text.after(' <a href="#" class="cancel-new-category">Cancel</a>');
+                return false;
+        });
+
+        // change text to select
+
+        jQuery('.cancel-new-category').live('click', function() {
+                var field = jQuery(this).siblings('tr.imagetype input[type="text"]');
+                jQuery(this).remove();
+                change_to_select(field);
+                return false;
+        });
+
+        // change all text fields to selects after upload
+
+        uploader.bind('UploadComplete', function(up, file, response) {
+                setTimeout(function() {
+                        jQuery('tr.imagetype input[type="text"]').each(function () {
+                                change_to_select(jQuery(this));
+                        });
+                },3000);
+        });
+});
+
+function change_to_select(field) {
+        var id = field.attr('id');
+        var val = field.val();
+        var select = jQuery('<select></select>');
+        select.append('<option value="">--Select--</option>');
+        jQuery.each(media_category.options, function(val, text) {
+                select.append('<option>'+text+'</option>');
+        });
+        select.val(val);
+        field.replaceWith(select);
+        select.attr('id',id);
+        select.attr('name',id);
+        select.after(' <a href="#" class="add-new-category">Add New Category</a>');
+}
