@@ -5,7 +5,7 @@ class WPMediaCategoryLibrary {
     /**
     *Variables
     */
-    const nspace = 'wpmediacat';
+    const nspace = 'wpmediacatlib';
     const pname = 'Media Category';
     const term = 'mediacategory';
     const version = 0.1;
@@ -138,7 +138,7 @@ class WPMediaCategoryLibrary {
             }
             else {
                     if ( ! $_REQUEST['media_category_submit'] ) {
-                            foreach ( get_media_categories() as $slug => $name ) $_REQUEST['media-categories'][] = $slug;
+                            foreach ( $this->get_media_categories() as $slug => $name ) $_REQUEST['media-categories'][] = $slug;
                     }
             }
             if ( array_key_exists( 'mediacats', $wp->query_vars ) ) {
@@ -218,10 +218,10 @@ class WPMediaCategoryLibrary {
     */
     function mediacat_library ( $frontend = false ) {
         global $wpdb;
-        if ( $_REQUEST['document_id'] ) {
+        if ( $_REQUEST['mediacat_document_id'] ) {
                 $date = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
                 $sql = "UPDATE wp_posts SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
-                        "post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['document_id'];
+                        "post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['mediacat_document_id'];
                 $wpdb->query( $sql );
         }
 
@@ -233,7 +233,7 @@ class WPMediaCategoryLibrary {
             foreach ( $_REQUEST['media-categories'] as $cat ) $selected_terms[] = "'" . $wpdb->escape( $cat ) . "'";
         }
         else {
-            foreach ( get_media_categories() as $slug => $name )
+            foreach ( $this->get_media_categories() as $slug => $name )
                 $selected_terms[] = "'" . $wpdb->escape( $slug ) . "'";
         }
 
@@ -248,55 +248,60 @@ class WPMediaCategoryLibrary {
 
         // subquery for media categories
 
-        $sub_sql = "SELECT x.term_taxonomy_id FROM " . $wpdb->term_taxonomy . " AS x " .
-                "LEFT JOIN " . $wpdb->terms . " AS t ON x.term_id = t.term_id WHERE " .
-                "t.slug IN(" . implode( ",", $selected_terms ) . ")";
+        if ( count( $selected_terms ) > 0 ) {
 
-        // main query that uses subquery
+            // create sub query
 
-        $sql = "SELECT SQL_CALC_FOUND_ROWS p.ID, p.post_title, p.post_mime_type, p.post_excerpt, p.post_date FROM " . $wpdb->posts . " AS p " .
-                "LEFT JOIN " . $wpdb->term_relationships . " AS r ON p.ID = r.object_id " .
-                "WHERE r.term_taxonomy_id IN($sub_sql) AND p.post_type='attachment' ";
+            $sub_sql = "SELECT x.term_taxonomy_id FROM " . $wpdb->term_taxonomy . " AS x " .
+                    "LEFT JOIN " . $wpdb->terms . " AS t ON x.term_id = t.term_id WHERE " .
+                    "t.slug IN(" . implode( ",", $selected_terms ) . ")";
 
-        // keyword
+            // main query that uses subquery
 
-        if ( $_REQUEST['keyword'] ) {
-                $where = array();
-                $k_fields = array( 'post_title', 'post_excerpt', 'post_content', 'guid' );
-                $keyword = "'%" . $wpdb->escape( $_REQUEST['keyword'] ) . "%'";
-                foreach ( $k_fields as $field ) {
-                        $where[] = "$field LIKE $keyword";
-                }
-                $sql .= "AND (" . implode( " OR ", $where ) . ") ";
+            $sql = "SELECT SQL_CALC_FOUND_ROWS p.ID, p.post_title, p.post_mime_type, p.post_excerpt, p.post_date FROM " . $wpdb->posts . " AS p " .
+                    "LEFT JOIN " . $wpdb->term_relationships . " AS r ON p.ID = r.object_id " .
+                    "WHERE r.term_taxonomy_id IN($sub_sql) AND p.post_type='attachment' ";
+
+            // keyword
+
+            if ( $_REQUEST['keyword'] ) {
+                    $where = array();
+                    $k_fields = array( 'post_title', 'post_excerpt', 'post_content', 'guid' );
+                    $keyword = "'%" . $wpdb->escape( $_REQUEST['keyword'] ) . "%'";
+                    foreach ( $k_fields as $field ) {
+                            $where[] = "$field LIKE $keyword";
+                    }
+                    $sql .= "AND (" . implode( " OR ", $where ) . ") ";
+            }
+
+            // order by and limit for pagination
+
+            $sql .= "ORDER BY p.post_title LIMIT $start, " . $posts_per_page;
+
+            //echo "<p>$sql</p>";
+
+            // get results, found rows, and total pages
+
+            $results = $wpdb->get_results( $sql, ARRAY_A );
+            $sql = 'SELECT FOUND_ROWS() AS found_rows';
+            $row = $wpdb->get_row( $sql, ARRAY_A );
+            $total_pages = ceil( $row['found_rows'] / $posts_per_page );
         }
-
-        // order by and limit for pagination
-
-        $sql .= "ORDER BY p.post_title LIMIT $start, " . $posts_per_page;
-
-        //echo "<p>$sql</p>";
-
-        // get results, found rows, and total pages
-
-        $results = $wpdb->get_results( $sql, ARRAY_A );
-        $sql = 'SELECT FOUND_ROWS() AS found_rows';
-        $row = $wpdb->get_row( $sql, ARRAY_A );
-        $total_pages = ceil( $row['found_rows'] / $posts_per_page );
 ?>
-<?php if ( $_REQUEST['document_id'] ): ?>
+<?php if ( $_REQUEST['mediacat_document_id'] ): ?>
 <div id="setting-error-settings_updated" class="updated settings-error"><p><strong>Document date updated successfully.</strong></p></div>
 <?php endif; ?>
 <br clear="all">
 <div class="wrap">
         <div class="icon32" id="icon-upload"><br></div>
 <?php if ( ! $frontend ): ?>
-        <h2><?php _e( self::pname . ' Library', self::nspace ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
+        <h2><?php _e( 'Category Library', self::nspace ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
         <div class="tablenav top">
                 <form id="doc-library-search-form">
                 <div class="alignleft actions">
                         <?php _e( 'View By Category', self::nspace ); ?>: <select name="doc-library-cat" id="doc-library-cat">
                                 <option value="">-- <?php _e( 'All', self::nspace ); ?> --</option>
-<?php foreach ( get_media_categories() as $slug => $name ): ?>
+<?php foreach ( $this->get_media_categories() as $slug => $name ): ?>
                                 <option value="<?php echo $slug; ?>"<?php if ( $slug == $_REQUEST['cat'] ): ?> selected<?php endif; ?>><?php echo $name; ?></option>
 <?php endforeach; ?>
                         </select>
@@ -309,7 +314,7 @@ class WPMediaCategoryLibrary {
 <?php
         $pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
         if ( $row['found_rows'] ) $this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
-        else echo '<p>' . __( 'No results found.', self::nspace ) . '</p>';
+        else echo '<p style="clear:both">' . __( 'No results found.', self::nspace ) . '</p>';
     }
 
     /**
@@ -381,7 +386,7 @@ class WPMediaCategoryLibrary {
         foreach ( array( 'cat','keyword' ) as $item ) {
                 if ( $_REQUEST[$item] ) $tmp[] = $item . '=' . rawurlencode( $_REQUEST[$item] );
         }
-        $url = admin_url() . 'upload.php?page=mediacat-library';
+        $url = admin_url() . 'upload.php?page=wpmediacatlib-library';
         if ( $tmp ) $url .= '&' . implode( '&', $tmp );
         return $url;
     }
@@ -427,7 +432,7 @@ class WPMediaCategoryLibrary {
     function add_admin_menus () {
         if ( current_user_can( 'manage_options' ) ) {
             add_options_page( self::pname, self::pname, 'manage_options', self::nspace . '-settings', array( &$this, 'settings_page' ) );
-            add_media_page( self::pname . ' Library', self::pname . ' Library', '', 'media-category-libary', array( &$this, 'media_category_library' ) );
+            add_media_page( 'Category Library', 'Category Library', 'manage_options', self::nspace . '-library', array( &$this, 'mediacat_library' ) );
         }
     }
 
@@ -440,14 +445,14 @@ class WPMediaCategoryLibrary {
     function add_admin_scripts ( $hook ) {
         global $post;
         if ( $hook == 'media.php' || $hook == 'media-new.php' || $hook == 'media-upload-popup' ) {
-            wp_enqueue_script( 'wp-media-category', $this->get_plugin_path() . '/js/media-category.js', array( 'jquery' ), self::version, true );
+            wp_enqueue_script( 'wp-media-category', $this->get_plugin_url() . 'js/media-category.js', array( 'jquery' ), self::version, true );
             $options = array();
-            $terms = get_terms( self::term, 'hide_empty=0' );
+            $terms = get_terms( $this->settings_data['taxonomy_name'], 'hide_empty=0' );
             foreach ( $terms as $term ) $options[] = $term->name;
-            wp_localize_script( 'wp-media-category', 'media_category', array( 'options' => $options ) );
+            wp_localize_script( 'wp-media-category', 'media_category', array( 'taxonomy_name' => $this->settings_data['taxonomy_name'], 'options' => $options ) );
         }
-        elseif ( $hook == 'media_page_document-libary' ) {
-            wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_path() . '/js/media-category-library.js', array( 'jquery' ), self::version, true );
+        elseif ( $hook == 'media_page_wpmediacatlib-library' ) {
+            wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_url() . 'js/media-category-library.js', array( 'jquery' ), self::version, true );
             wp_enqueue_script( 'thickbox' );
         }
     }

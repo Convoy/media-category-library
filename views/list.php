@@ -37,7 +37,7 @@
                                 <td><?php echo $result['post_mime_type']; ?></td>
 <?php
         $mediacats = array();
-        $terms = wp_get_object_terms( $result['ID'], 'imagetype' );
+        $terms = wp_get_object_terms( $result['ID'], $this->settings_data['taxonomy_name'] );
         foreach ( $terms as $term ) $mediacats[] = $term->name;
         $time_format = get_option( 'date_format' ) . ' ' .  get_option( 'time_format' );
 ?>
@@ -49,7 +49,7 @@
                                         <abbr title="<?php echo get_the_time( 'M j, Y', $result['ID'] ); ?>"><?php echo $date; ?></abbr>
 <?php else: ?>
 <?php list ( $month, $day, $year ) = explode( "/", $date ); ?>
-                                        <form action="<?php echo get_mediacat_library_admin_url(); ?>" method="post">
+                                        <form action="<?php echo $this->get_mediacat_library_admin_url(); ?>" method="post">
                                                 <select name="month">
                                         <?php for( $i = 1; $i <= 12; $i++ ): ?>
                                         <?php $months = array( '01'=>'Jan','02'=>'Feb','03'=>'Mar','04'=>'Apr','05'=>'Mar','06'=>'Jun','07'=>'Jul','08'=>'Aug','09'=>'Sept','10'=>'Oct','11'=>'Nov','12'=>'Dec' ); ?>
@@ -71,7 +71,7 @@
                                                         <option value="<?php echo $i; ?>"<?php if ( $year == $i ): ?> selected<?php endif; ?>><?php echo $i; ?></option>
                                         <?php endfor; ?>
                                                 </select>
-                                                <input type="hidden" name="document_id" value="<?php echo $result['ID']; ?>">
+                                                <input type="hidden" name="mediacat_document_id" value="<?php echo $result['ID']; ?>">
                                                 <input type="submit" value="Change Date">
                                         </form>
 <?php endif; ?>
@@ -80,7 +80,7 @@
                                 <td>
                                         <ul>
                                                 <li><a href="<?php echo admin_url(); ?>media.php?attachment_id=<?php echo $result['ID']; ?>&action=edit"><?php _e( 'Edit', self::nspace ); ?></a></li>
-                                                <li><a class="thickbox" href="/document-pages/<?php echo $result['ID']; ?>/"><?php _e( 'Pages', self::nspace ); ?></a></li>
+                                                <li><a class="thickbox" href="/mediacat-pages/<?php echo $result['ID']; ?>/"><?php _e( 'Pages', self::nspace ); ?></a></li>
                                         </ul>
                                 </td>
 <?php endif; ?>
