@@ -7,7 +7,7 @@ class WPMediaCategory {
     */
     const nspace = 'wpmediacat';
     const pname = 'Media Category';
-    const term = 'mediacategory'
+    const term = 'mediacategory';
     const version = 0.1;
     protected $_plugin_file;
     protected $_plugin_dir;
