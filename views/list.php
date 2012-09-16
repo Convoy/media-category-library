@@ -19,14 +19,14 @@
         <table class="widefat responsive">
                 <thead>
                         <tr>
-                                            <th><?php _e( 'Title', self::nspace ); ?></th>
-                                            <th><?php _e( 'File', self::nspace ); ?></th>
-                                            <th><?php _e( 'Type', self::nspace ); ?></th>
-                                            <th><?php _e( 'Category', self::nspace ); ?></th>
-                                            <th><?php _e( 'Caption', self::nspace ); ?></th>
-                                            <th><?php _e( 'Date', self::nspace ); ?></th>
-                                            <?php if ( ! $frontend ): ?><th><?php _e( 'Options', self::nspace ); ?></th><?php endif; ?>
-                                    </tr>
+                                <th><?php _e( 'Title', self::nspace ); ?></th>
+                                <th><?php _e( 'File', self::nspace ); ?></th>
+                                <th><?php _e( 'Type', self::nspace ); ?></th>
+                                <th><?php _e( 'Category', self::nspace ); ?></th>
+                                <th><?php _e( 'Caption', self::nspace ); ?></th>
+                                <th><?php _e( 'Date', self::nspace ); ?></th>
+                                <?php if ( ! $frontend ): ?><th><?php _e( 'Options', self::nspace ); ?></th><?php endif; ?>
+                        </tr>
                 </thead>
 <?php foreach ( $results as $result ): ?>
                 <tbody>
