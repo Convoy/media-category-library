@@ -76,6 +76,10 @@ class WPMediaCategoryLibrary {
         // Media category taxonomy
 
         add_action( 'init', array( &$this, 'create_taxonomy' ) );
+
+        // shortcode
+
+        add_shortcode( 'mclib', array( &$this, 'mclib_shortcode' ) );
     }
 
     /**
@@ -409,6 +413,60 @@ class WPMediaCategoryLibrary {
                 $total_records . ' ' . __( 'total records', self::nspace ) . '</div>' .
                 '<div class="pagination-pages">' . __( 'Page', self::nspace ) . ' ' . $page . ' ' . __( 'of', self::nspace ) .
                 ' ' . $total_pages . '</div>';
+    }
+
+    /**
+    *Shortcode
+    *
+    *@return string
+    *@since 0.1
+    */
+    function mclib_shorcode( $atts=array() ) {
+            $terms = get_terms( $this->settings_data['media-category'], array( 'hide_empty' => false ) );
+            $cats = explode( ',', $atts['cats'] );
+            $selected_terms = array();
+            foreach ( $cats as $cat ) {
+                    $cat = trim( $cat );
+                    foreach ( $terms as $term ) {
+                            if ( $term->name == $cat ) {
+                                    $selected_terms[] = $term->slug;
+                                    break;
+                            }
+                    }
+            }
+            $args = array(
+                            'numberposts' => -1,
+                            'order_by' => 'menu_order',
+                            'order' => 'ASC',
+                            'post_type' => 'attachment',
+                            'tax_query' => array(
+                                                    array(
+                                                            'taxonomy' => $this->settings_data['media-category'],
+                                                            'field' => 'slug',
+                                                            'terms' => $selected_terms
+                                                            )
+                                                    )
+                            );
+            $posts = get_posts($args);
+?>
+        <table>
+                <thead>
+                        <tr><th>Title</th><th>File Name</th><th>Caption</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+<?php foreach ( $posts as $post ): ?>
+<?php $link = wp_get_attachment_url( $post->ID ); ?>
+<?php $time_format = get_option( 'date_format' ) . ' ' .  get_option( 'time_format' ); ?>
+                        <tr>
+                                <td><a href="<?php echo $link; ?>"><?php echo get_the_title( $post->ID ); ?></a></td>
+                                <td><?php echo basename( $link ); ?></td>
+                                <td><?php echo $post->post_excerpt; ?></td>
+                                <td><?php echo get_the_time( $time_format, $post->ID ); ?></td>
+                        </tr>
+<?php endforeach; ?>
+                </tbody>
+        </table>
+<?php
     }
 
 	/**
