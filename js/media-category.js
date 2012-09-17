@@ -34,13 +34,18 @@ jQuery(document).ready(function() {
         // change all text fields to selects after upload
 
         if(typeof uploader != 'undefined') {
-                uploader.bind('UploadComplete', function(up, file, response) {
-                        jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').hide();
-                        jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').after('<img class="mcl-loader" src="' + media_category.plugin_url + 'images/ajax-loader.gif">');
-                        setTimeout(function() {
-                                jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').show();
+                uploader.bind('UploadProgress', function() {
+                        //if (uploader.total.uploaded > 0) {
                                 jQuery('img.mcl-loader').remove();
+                                jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').hide();
+                                jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').after('<img class="mcl-loader" src="' + media_category.plugin_url + 'images/ajax-loader.gif">');
+                        //}
+                });
+                uploader.bind('UploadComplete', function(up, file, response) {
+                        setTimeout(function() {
                                 jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').each(function () {
+                                        jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').show();
+                                        jQuery('img.mcl-loader').remove();
                                         change_to_select(jQuery(this));
                                 });
                         },3000);

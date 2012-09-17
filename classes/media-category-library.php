@@ -449,7 +449,7 @@ class WPMediaCategoryLibrary {
             $options = array();
             $terms = get_terms( $this->settings_data['taxonomy_name'], 'hide_empty=0' );
             foreach ( $terms as $term ) $options[] = $term->name;
-            wp_localize_script( 'wp-media-category', 'media_category', array( 'taxonomy_name' => $this->settings_data['taxonomy_name'], 'options' => $options ) );
+            wp_localize_script( 'wp-media-category', 'media_category', array( 'plugin_url' => $this->get_plugin_url(), 'taxonomy_name' => $this->settings_data['taxonomy_name'], 'options' => $options ) );
         }
         elseif ( $hook == 'media_page_wpmediacatlib-library' ) {
             wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_url() . 'js/media-category-library.js', array( 'jquery' ), self::version, true );
