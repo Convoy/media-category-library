@@ -2,85 +2,85 @@
 
 class WPMediaCategoryLibrary {
 
-    /**
-    *Variables
-    */
-    const nspace = 'wpmediacatlib';
-    const pname = 'Media Category';
-    const term = 'mediacategory';
-    const version = 0.1;
-    protected $_plugin_file;
-    protected $_plugin_dir;
-    protected $_plugin_path;
-    protected $_plugin_url;
+	/**
+	*Variables
+	*/
+	const nspace = 'wpmediacatlib';
+	const pname = 'Media Category';
+	const term = 'mediacategory';
+	const version = 0.1;
+	protected $_plugin_file;
+	protected $_plugin_dir;
+	protected $_plugin_path;
+	protected $_plugin_url;
 
 	var $settings_fields = array();
 	var $settings_data = array();
 	var $debug = false;
 
-    /**
-    *Constructor
-    *
-    *@return void
-    *@since 0.1
-    */
-    function __construct() {}
+	/**
+	*Constructor
+	*
+	*@return void
+	*@since 0.1
+	*/
+	function __construct() {}
 
-    /**
-    *Init function
-    *
-    *@return void
-    *@since 0.1
-    */
-    function init() {
+	/**
+	*Init function
+	*
+	*@return void
+	*@since 0.1
+	*/
+	function init() {
 
-        // settings data -- leave at top of constructor
+		// settings data -- leave at top of constructor
 
-        $this->settings_data = unserialize( get_option( self::nspace . '-settings' ) );
+		$this->settings_data = unserialize( get_option( self::nspace . '-settings' ) );
 
-        // set default taxonomy_name
+		// set default taxonomy_name
 
-        if ( ! @strlen( $this->settings_data['taxonomy_name'] ) ) $this->settings_data['taxonomy_name'] = 'media-category';
+		if ( ! @strlen( $this->settings_data['taxonomy_name'] ) ) $this->settings_data['taxonomy_name'] = 'media-category';
 
 		if ( is_admin() ) {
 
-            // add menus
+			// add menus
 
 			add_action( 'admin_menu', array( &$this, 'add_admin_menus' ), 30 );
-                        
-            // enqueue css/js
 
-            add_action( 'admin_enqueue_scripts', array( &$this, 'add_admin_scripts' ), 10, 1 );
+			// enqueue css/js
+
+			add_action( 'admin_enqueue_scripts', array( &$this, 'add_admin_scripts' ), 10, 1 );
 
 			// settings fields
 
-            $this->settings_fields = array(
-                            'legend_1' => array(
-                                    'label' => __( 'General Settings', self::nspace ),
-                                    'type' => 'legend'
-                                    ),
-                            'taxonomy_name' => array(
-                                    'label' => __( 'Taxonomy Name (should be all lowercase)', self::nspace ),
-                                    'type' => 'text',
-                                    'default' => 'media-category'
-                                    )
-                        );
+			$this->settings_fields = array(
+							'legend_1' => array(
+								'label' => __( 'General Settings', self::nspace ),
+								'type' => 'legend'
+							),
+							'taxonomy_name' => array(
+								'label' => __( 'Taxonomy Name (should be all lowercase)', self::nspace ),
+								'type' => 'text',
+								'default' => 'media-category'
+							)
+						);
 		}
 
-        // add custom rewrites
+		// add custom rewrites
 
-        add_filter( 'generate_rewrite_rules', array( &$this, 'media_category_rewrites' ) );
-        add_filter( 'query_vars', array( &$this, 'media_category_query_vars_actions' ) );
-        add_action( 'parse_request', array( &$this, 'media_category_parse_request_actions' ) );
+		add_filter( 'generate_rewrite_rules', array( &$this, 'media_category_rewrites' ) );
+		add_filter( 'query_vars', array( &$this, 'media_category_query_vars_actions' ) );
+		add_action( 'parse_request', array( &$this, 'media_category_parse_request_actions' ) );
 
-        // Media category taxonomy
+		// Media category taxonomy
 
-        add_action( 'init', array( &$this, 'create_taxonomy' ) );
+		add_action( 'init', array( &$this, 'create_taxonomy' ) );
 
-        // shortcode
+		// shortcode
 
-        add_shortcode( 'mclib', array( &$this, 'mclib_shortcode' ) );
-    }
+		add_shortcode( 'mediacategory', array( &$this, 'get_mediacategory_shortcode' ) );
+	}
 
     /**
     *Rewrites function
@@ -421,7 +421,8 @@ class WPMediaCategoryLibrary {
     *@return string
     *@since 0.1
     */
-    function mclib_shorcode( $atts=array() ) {
+    function get_mediacategory_shortcode( $atts = array() ) {
+            ob_start(); 	
             $terms = get_terms( $this->settings_data['media-category'], array( 'hide_empty' => false ) );
             $cats = explode( ',', $atts['cats'] );
             $selected_terms = array();
@@ -467,6 +468,9 @@ class WPMediaCategoryLibrary {
                 </tbody>
         </table>
 <?php
+	$content = ob_get_contents();
+	ob_end_clean();
+	return $content;
     }
 
 	/**
