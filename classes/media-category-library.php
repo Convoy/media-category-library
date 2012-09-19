@@ -82,51 +82,51 @@ class WPMediaCategoryLibrary {
 		add_shortcode( 'mediacategory', array( &$this, 'get_mediacategory_shortcode' ) );
 	}
 
-    /**
-    *Rewrites function
-    *
-    *@return void
-    *@since 0.1
-    */
-    function media_category_rewrites( $wpr ) {
-        $rules = array(
-                'mediacat\-pages/(\d+)/?' => 'index.php?mediacat_pages=1&attachment_id=' .
-                        $wpr->preg_index(1),
-                'mediacat\-library/(\d+)/(.*)/(.*)/?' => 'index.php?mediacat_library=1&mediacat_page=' .
-                        $wpr->preg_index(1) . '&mediacats=' . $wpr->preg_index(2) . '&mediacat_keyword=' . $wpr->preg_index(3),
-                'mediacat\-library/(\d+)/(.*)/?' => 'index.php?mediacat_library=1&mediacat_page=' .
-                        $wpr->preg_index(1) . '&mediacats=' . $wpr->preg_index(2),
-                'mediacat\-library/?$' => 'index.php?mediacat_library=1',
-        );
-        $wpr->rules = $rules + $wpr->rules;
-    }
+        /**
+        *Rewrites function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function media_category_rewrites( $wpr ) {
+                $rules = array(
+                        'mediacat\-pages/(\d+)/?' => 'index.php?mediacat_pages=1&attachment_id=' .
+                                $wpr->preg_index(1),
+                        'mediacat\-library/(\d+)/(.*)/(.*)/?' => 'index.php?mediacat_library=1&mediacat_page=' .
+                                $wpr->preg_index(1) . '&mediacats=' . $wpr->preg_index(2) . '&mediacat_keyword=' . $wpr->preg_index(3),
+                        'mediacat\-library/(\d+)/(.*)/?' => 'index.php?mediacat_library=1&mediacat_page=' .
+                                $wpr->preg_index(1) . '&mediacats=' . $wpr->preg_index(2),
+                        'mediacat\-library/?$' => 'index.php?mediacat_library=1',
+                );
+                $wpr->rules = $rules + $wpr->rules;
+        }
 
-    /**
-    *Query vars function
-    *
-    *@return void
-    *@since 0.1
-    */
-    function media_category_query_vars_actions( $query_vars ) {
-        $query_vars[] = 'mediacat_library';
-        $query_vars[] = 'mediacat_page';
-        $query_vars[] = 'mediacat_keyword';
-        $query_vars[] = 'mediacat_pages';
-        $query_vars[] = 'attachment_id';
-        $query_vars[] = 'mediacats';
-        return $query_vars;
-    }
+        /**
+        *Query vars function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function media_category_query_vars_actions( $query_vars ) {
+                $query_vars[] = 'mediacat_library';
+                $query_vars[] = 'mediacat_page';
+                $query_vars[] = 'mediacat_keyword';
+                $query_vars[] = 'mediacat_pages';
+                $query_vars[] = 'attachment_id';
+                $query_vars[] = 'mediacats';
+                return $query_vars;
+        }
 
-    /**
-    *Body class function
-    *
-    *@return void
-    *@since 0.1
-    */
-    function body_class ( $classes ) {
-        $classes[] = self::nspace;
-        return $classes;
-    }
+        /**
+        *Body class function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function body_class ( $classes ) {
+                $classes[] = self::nspace;
+                return $classes;
+        }
 
     /**
     *Parse request function
@@ -511,7 +511,14 @@ class WPMediaCategoryLibrary {
             $options = array();
             $terms = get_terms( $this->settings_data['taxonomy_name'], 'hide_empty=0' );
             foreach ( $terms as $term ) $options[] = $term->name;
-            wp_localize_script( 'wp-media-category', 'media_category', array( 'plugin_url' => $this->get_plugin_url(), 'taxonomy_name' => $this->settings_data['taxonomy_name'], 'options' => $options ) );
+            $args = array(
+                                'add_label' => __( 'Add/Edit Category', self::nspace ),
+                                'del_label' => __( 'Delete Category', self::nspace ),
+                                'plugin_url' => $this->get_plugin_url(),
+                                'taxonomy_name' => $this->settings_data['taxonomy_name'],
+                                'options' => $options
+                        );
+            wp_localize_script( 'wp-media-category', 'media_category', $args );
         }
         elseif ( $hook == 'media_page_wpmediacatlib-library' ) {
             wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_url() . 'js/media-category-library.js', array( 'jquery' ), self::version, true );

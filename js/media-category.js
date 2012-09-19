@@ -53,6 +53,8 @@ jQuery(document).ready(function() {
         }
 });
 
+// function that changes the taxonomy textfield to a select
+
 function change_to_select(field) {
         if(media_category.options.length > 0) {
                 var id = field.attr('id');
@@ -66,6 +68,8 @@ function change_to_select(field) {
                 field.replaceWith(select);
                 select.attr('id',id);
                 select.attr('name',id);
-                select.after(' <a href="#" class="add-new-category">Add New Category</a>');
+                var links = ' <a href="#" class="add-new-category">' + media_category.add_label + '</a>';
+                link +=  '<a href="#" class="del-new-category">' + media_category.del_label + '</a>';
+                select.after(links);
         }
 }
