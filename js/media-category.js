@@ -29,7 +29,9 @@ jQuery(document).ready(function() {
                 var field = jQuery(this).siblings('tr.' + media_category.taxonomy_name + ' select');
                 var val = field.val();
                 var cat_id = media_category.cats[val];
-                alert('Deleting cat: ' + cat_id + ' with attachment_id: ' + id);
+                if(confirm('Are you sure that you want to delete the category, ' + val + '?')) {
+                        location.href = '/mediacat-del/' + cat_id + '/' + id + '/';
+                }
                 return false;
         });
 
@@ -46,11 +48,9 @@ jQuery(document).ready(function() {
 
         if(typeof uploader != 'undefined') {
                 uploader.bind('UploadProgress', function() {
-                        //if (uploader.total.uploaded > 0) {
-                                jQuery('img.mcl-loader').remove();
-                                jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').hide();
-                                jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').after('<img class="mcl-loader" src="' + media_category.plugin_url + 'images/ajax-loader.gif">');
-                        //}
+                        jQuery('img.mcl-loader').remove();
+                        jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').hide();
+                        jQuery('tr.' + media_category.taxonomy_name + ' input[type="text"]').after('<img class="mcl-loader" src="' + media_category.plugin_url + 'images/ajax-loader.gif">');
                 });
                 uploader.bind('UploadComplete', function(up, file, response) {
                         setTimeout(function() {
