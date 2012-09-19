@@ -97,7 +97,8 @@ class WPMediaCategoryLibrary {
                         'mediacat\-library/(\d+)/(.*)/?' => 'index.php?mediacat_library=1&mediacat_page=' .
                                 $wpr->preg_index(1) . '&mediacats=' . $wpr->preg_index(2),
                         'mediacat\-library/?$' => 'index.php?mediacat_library=1',
-                        'mediacat\-del/(\d+)/?' => 'index.php?mediacat_del=' . $wpr->preg_index(1),
+                        'mediacat\-del/(\d+)/(\d+)/?' => 'index.php?mediacat_del=' . 
+                                $wpr->preg_index(1) . '&attachment_id=' . $wpr->preg_index(2),
                 );
                 $wpr->rules = $rules + $wpr->rules;
         }
@@ -197,7 +198,7 @@ class WPMediaCategoryLibrary {
                         exit;
                 }
                 elseif ( array_key_exists( 'mediacat_del', $wp->query_vars ) ) {
-                        if ( current_user_can( 'manage_options' ) && $wp->query_vars['mediacat_del'] > 0 ) {
+                        if ( current_user_can( 'manage_options' ) && $wp->query_vars['mediacat_del'] > 0 && $wp->query_vars['attachment_id'] > 0) {
                                 echo 'DELETE ID: ' . $wp->query_vars['mediacat_del'];
                         }
                         else echo 'Not authorized.';
