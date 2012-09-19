@@ -22,6 +22,17 @@ jQuery(document).ready(function() {
                 return false;
         });
 
+        // change select to text
+
+        jQuery('.del-category').live('click', function() {
+                var id = jQuery('#attachment_id').val();
+                var field = jQuery(this).siblings('tr.' + media_category.taxonomy_name + ' select');
+                var val = field.val();
+                var cat_id = media_category.cats[val];
+                alert('Deleting cat: ' + cat_id + ' with attachment_id: ' + id);
+                return false;
+        });
+
         // change text to select
 
         jQuery('.cancel-new-category').live('click', function() {
@@ -69,7 +80,7 @@ function change_to_select(field) {
                 select.attr('id',id);
                 select.attr('name',id);
                 var links = ' <a href="#" class="add-new-category">' + media_category.add_label + '</a>';
-                links +=  ' &nbsp;&nbsp;<a href="#" class="del-new-category">' + media_category.del_label + '</a>';
+                links +=  ' &nbsp;&nbsp;<a href="#" class="del-category">' + media_category.del_label + '</a>';
                 select.after(links);
         }
 }
