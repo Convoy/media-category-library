@@ -157,7 +157,7 @@ class WPMediaCategoryLibrary {
                                 add_filter( 'body_class', array( &$this, 'body_class' ) );
                                 include $this->get_plugin_path() . '/views/search.php';
                         }
-                        else echo 'Not authorized.'
+                        else echo 'Not authorized.';
                         exit;
                 }
                 elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
@@ -193,14 +193,14 @@ class WPMediaCategoryLibrary {
                 </p>
 <?php
                         }
-                        else echo 'Not authorized.'
+                        else echo 'Not authorized.';
                         exit;
                 }
                 elseif ( array_key_exists( 'mediacat_del', $wp->query_vars ) ) {
                         if ( current_user_can( 'manage_options' ) && $wp->query_vars['mediacat_del'] > 0 ) {
                                 echo 'DELETE ID: ' . $wp->query_vars['mediacat_del'];
                         }
-                        else echo 'Not authorized.'
+                        else echo 'Not authorized.';
                         exit;
                 }
         }
