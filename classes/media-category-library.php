@@ -532,7 +532,7 @@ class WPMediaCategoryLibrary {
             $options = array();
             $terms = get_terms( $this->settings_data['taxonomy_name'], 'hide_empty=0' );
             foreach ( $terms as $term ) $options[] = $term->name;
-            $cat = $this->get_media_categories ( true );
+            $cats = $this->get_media_categories ( true );
             $args = array(
                                 'add_label' => __( 'Add/Edit Category', self::nspace ),
                                 'del_label' => __( 'Delete Category', self::nspace ),
