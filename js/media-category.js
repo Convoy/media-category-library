@@ -69,7 +69,7 @@ function change_to_select(field) {
                 select.attr('id',id);
                 select.attr('name',id);
                 var links = ' <a href="#" class="add-new-category">' + media_category.add_label + '</a>';
-                links +=  '<a href="#" class="del-new-category">' + media_category.del_label + '</a>';
+                links +=  ' &nbsp;&nbsp;<a href="#" class="del-new-category">' + media_category.del_label + '</a>';
                 select.after(links);
         }
 }

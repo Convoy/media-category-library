@@ -128,67 +128,69 @@ class WPMediaCategoryLibrary {
                 return $classes;
         }
 
-    /**
-    *Parse request function
-    *
-    *@return void
-    *@since 0.1
-    */
-    function media_category_parse_request_actions( &$wp ) {
-        global $wpdb;
-        if ( array_key_exists( 'mediacat_library', $wp->query_vars ) ) {
-            if ( array_key_exists( 'mediacat_page', $wp->query_vars ) ) {
-                    $_REQUEST['pnum'] = $wp->query_vars['mediacat_page'];
-            }
-            else {
-                    if ( ! $_REQUEST['media_category_submit'] ) {
-                            foreach ( $this->get_media_categories() as $slug => $name ) $_REQUEST['media-categories'][] = $slug;
-                    }
-            }
-            if ( array_key_exists( 'mediacats', $wp->query_vars ) ) {
-                    $_REQUEST['media-categories'] = explode( ',', $wp->query_vars['mediacats'] );
-            }
-            if ( array_key_exists( 'mediacat_keyword', $wp->query_vars ) ) {
-                    $_REQUEST['keyword'] = $wp->query_vars['mediacat_keyword'];
-            }
-            add_filter( 'body_class', array( &$this, 'body_class' ) );
-            include $this->get_plugin_path() . '/views/search.php';
-            exit;
-        }
-        elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
+        /**
+        *Parse request function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function media_category_parse_request_actions( &$wp ) {
+                global $wpdb;
+                if ( array_key_exists( 'mediacat_library', $wp->query_vars ) ) {
+                        if ( array_key_exists( 'mediacat_page', $wp->query_vars ) ) {
+                                $_REQUEST['pnum'] = $wp->query_vars['mediacat_page'];
+                        }
+                        else {
+                                if ( ! $_REQUEST['media_category_submit'] ) {
+                                        foreach ( $this->get_media_categories() as $slug => $name ) $_REQUEST['media-categories'][] = $slug;
+                                }
+                        }
+                        if ( array_key_exists( 'mediacats', $wp->query_vars ) ) {
+                                $_REQUEST['media-categories'] = explode( ',', $wp->query_vars['mediacats'] );
+                        }
+                        if ( array_key_exists( 'mediacat_keyword', $wp->query_vars ) ) {
+                                $_REQUEST['keyword'] = $wp->query_vars['mediacat_keyword'];
+                        }
+                        add_filter( 'body_class', array( &$this, 'body_class' ) );
+                        include $this->get_plugin_path() . '/views/search.php';
+                        exit;
+                }
+                elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
+                        if ( current_user_can( 'manage_options' ) ) {
 
-            // get file name
+                                // get file name
 
-            $row = $wpdb->get_row( "SELECT guid FROM " . $wpdb->posts . " WHERE ID = '" . $wpdb->escape( $wp->query_vars['attachment_id'] ) . "'", ARRAY_A );
-            $file_name = basename( $row['guid'] );
+                                $row = $wpdb->get_row( "SELECT guid FROM " . $wpdb->posts . " WHERE ID = '" . $wpdb->escape( $wp->query_vars['attachment_id'] ) . "'", ARRAY_A );
+                                $file_name = basename( $row['guid'] );
 
-            // get pages or posts that reference this file
+                                // get pages or posts that reference this file
 
-            $sql = "SELECT SQL_CALC_FOUND_ROWS ID FROM " . $wpdb->posts .
-                    " WHERE post_type <> 'revision' AND post_content LIKE '" . $wpdb->escape( '%' . $file_name . '%' ) . "'";
-            $results = $wpdb->get_results( $sql, ARRAY_A );
-            $sql = 'SELECT FOUND_ROWS() AS found_rows';
-            $row = $wpdb->get_row( $sql, ARRAY_A );
-            echo '<h3>Pages that include the following document: ' . $file_name . '</h3>';
-            $label = 'pages';
-            if ( $row['found_rows'] == 1 ) $label = 'page';
-            echo '<h4>' . $row['found_rows'] . ' ' . $label . ' found.</h4>';
+                                $sql = "SELECT SQL_CALC_FOUND_ROWS ID FROM " . $wpdb->posts .
+                                        " WHERE post_type <> 'revision' AND post_content LIKE '" . $wpdb->escape( '%' . $file_name . '%' ) . "'";
+                                $results = $wpdb->get_results( $sql, ARRAY_A );
+                                $sql = 'SELECT FOUND_ROWS() AS found_rows';
+                                $row = $wpdb->get_row( $sql, ARRAY_A );
+                                echo '<h3>Pages that include the following document: ' . $file_name . '</h3>';
+                                $label = 'pages';
+                                if ( $row['found_rows'] == 1 ) $label = 'page';
+                                echo '<h4>' . $row['found_rows'] . ' ' . $label . ' found.</h4>';
 ?>
 <?php if ( $row['found_rows'] > 0 ): ?>
-                    <ul style="list-style:disc; margin: 50px 0 0 100px;">
+                <ul style="list-style:disc; margin: 50px 0 0 100px;">
 <?php foreach ( $results as $result ): ?>
-                            <li><a href="<?php echo admin_url(); ?>post.php?post=<?php echo $result['ID']; ?>&action=edit"><?php echo get_the_title( $result['ID'] ); ?></a></li>
+                        <li><a href="<?php echo admin_url(); ?>post.php?post=<?php echo $result['ID']; ?>&action=edit"><?php echo get_the_title( $result['ID'] ); ?></a></li>
 <?php endforeach; ?>
-                    </ul>
+                </ul>
 
 <?php endif; ?>
-                    <p style="margin-top: 100px;text-align:center">
+                <p style="margin-top: 100px;text-align:center">
                         <a href="#" onclick="parent.tb_remove();return false;"><?php _e( 'Close', self::nspace ); ?></a>
-                    </p>
+                </p>
 <?php
-            exit;
+                        }
+                        exit;
+                }
         }
-    }
 
     function create_taxonomy() {
         $labels = array(
