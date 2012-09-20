@@ -29,7 +29,7 @@
 		                <input type="submit" value="<?php _e( 'Search', 'convoy-theme' ); ?>">
 		        </form>
 
-<?php if ( $_REQUEST['keyword'] || $_REQUEST['media-categories'] ) ufcw_document_library( true ); ?>
+<?php if ( $_REQUEST['keyword'] || $_REQUEST['media-categories'] ) $this->mediacat_library( true ); ?>
 
         </section>
 

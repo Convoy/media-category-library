@@ -1,3 +1,26 @@
+<?php if ( $_REQUEST['mediacat_document_id'] ): ?>
+<div id="setting-error-settings_updated" class="updated settings-error"><p><strong>Document date updated successfully.</strong></p></div>
+<?php endif; ?>
+<?php if ( ! $frontend ): ?>
+<br clear="all">
+<div class="wrap">
+        <div class="icon32" id="icon-upload"><br></div>
+        <h2><?php _e( 'Category Library', self::nspace ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
+        <div class="tablenav top">
+                <form id="doc-library-search-form">
+                <div class="alignleft actions">
+                        <?php _e( 'View By Category', self::nspace ); ?>: <select name="doc-library-cat" id="doc-library-cat">
+                                <option value="">-- <?php _e( 'All', self::nspace ); ?> --</option>
+<?php foreach ( $this->get_media_categories() as $slug => $name ): ?>
+                                <option value="<?php echo $slug; ?>"<?php if ( $slug == $_REQUEST['cat'] ): ?> selected<?php endif; ?>><?php echo $name; ?></option>
+<?php endforeach; ?>
+                        </select>
+                </div>
+                <div class="alignleft actions">
+                        <input type="text" id="doc-library-keyword" name="doc-library-keyword" value="<?php echo $_REQUEST['keyword']; ?>"> <input type="button" id="doc-library-search" class="button button-secondary action" value="<?php _e( 'Search', self::nspace ); ?>">
+        </div>
+           </form>
+<?php endif; ?>
 <?php if ( $frontend ): ?>
 <?php if ( $pagination ): ?>
         <div class="pagination docs-pagination">

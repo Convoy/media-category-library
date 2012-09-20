@@ -132,6 +132,30 @@ class WPMediaCategoryLibrary {
         }
 
         /**
+        *Media categories
+        *
+        *@return array
+        *@since 0.1
+        */
+        function get_media_categories ( $by_name_and_id = false ) {
+                global $wpdb;
+                $sub_sql = "SELECT term_taxonomy_id FROM " . $wpdb->term_taxonomy . " WHERE taxonomy='" . $this->settings_data['taxonomy_name'] . "'";
+                $sql = "SELECT DISTINCT t.term_id, t.name, t.slug FROM " . $wpdb->term_relationships . " AS r " .
+                        "LEFT JOIN " . $wpdb->term_taxonomy . " AS x ON x.term_taxonomy_id = r.term_taxonomy_id " .
+                        "LEFT JOIN " . $wpdb->terms . " AS t ON t.term_id = x.term_id WHERE r.term_taxonomy_id IN($sub_sql) ORDER BY t.name";
+                $results = $wpdb->get_results( $sql, ARRAY_A );
+                $mediacats = array();
+                $key = 'slug';
+                $val = 'name';
+                if ( $by_name_and_id ) {
+                        $key = 'name';
+                        $val = 'term_id';
+                }
+                foreach ( $results as $result ) $mediacats[$result[$key]] = $result[$val];
+                return $mediacats;
+        }
+
+        /**
         *Parse request function
         *
         *@return void
@@ -206,160 +230,113 @@ class WPMediaCategoryLibrary {
                 }
         }
 
-    function create_taxonomy() {
-        $labels = array(
-                        'name' => __( 'Media Category', self::nspace ),
-                        'singular_name' => __( 'Media Category', self::nspace ),
-                        'search_items' => __( 'Search Media Categories', self::nspace ),
-                        'all_items' => __( 'All Media Categories', self::nspace ),
-                        'parent_item' => __( 'Parent Media Category', self::nspace ),
-                        'parent_item_colon' => __( 'Parent Media Category', self::nspace ),
-                        'edit_item' => __( 'Edit Media Category', self::nspace ),
-                        'update_item' => __( 'Update Media Category', self::nspace ),
-                        'add_new_item' => __( 'Add New Media Category', self::nspace ),
-                        'new_item_name' => __( 'New Media Category Name', self::nspace ),
-                        'menu_name' => __( 'Media Category', self::nspace )
-                        );
-        $args = array(
-                        'hierarchical' => true,
-                        'labels' => $labels,
-                        'show_ui' => true,
-                        'query_var' => true,
-                        'rewrite' => true
-                        );
-        register_taxonomy( $this->settings_data['taxonomy_name'], 'attachment', $args );
-    }
+	/**
+	*Create taxonomy
+	*
+	*@return void
+	*@since 0.1
+	*/
+	function create_taxonomy() {
+		$labels = array(
+				'name' => __( 'Media Category', self::nspace ),
+				'singular_name' => __( 'Media Category', self::nspace ),
+				'search_items' => __( 'Search Media Categories', self::nspace ),
+				'all_items' => __( 'All Media Categories', self::nspace ),
+				'parent_item' => __( 'Parent Media Category', self::nspace ),
+				'parent_item_colon' => __( 'Parent Media Category', self::nspace ),
+				'edit_item' => __( 'Edit Media Category', self::nspace ),
+				'update_item' => __( 'Update Media Category', self::nspace ),
+				'add_new_item' => __( 'Add New Media Category', self::nspace ),
+				'new_item_name' => __( 'New Media Category Name', self::nspace ),
+				'menu_name' => __( 'Media Category', self::nspace )
+			);
+		$args = array(
+				'hierarchical' => true,
+				'labels' => $labels,
+				'show_ui' => true,
+				'query_var' => true,
+				'rewrite' => true
+			);
+		register_taxonomy( $this->settings_data['taxonomy_name'], 'attachment', $args );
+	}
 
-    /**
-    *Media category library
-    *
-    *@return void
-    *@since 0.1
-    */
-    function mediacat_library ( $frontend = false ) {
-        global $wpdb;
-        if ( $_REQUEST['mediacat_document_id'] ) {
-                $date = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
-                $sql = "UPDATE wp_posts SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
-                        "post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['mediacat_document_id'];
-                $wpdb->query( $sql );
-        }
+	/**
+	*Media category library
+	*
+	*@return void
+	*@since 0.1
+	*/
+	function mediacat_library ( $frontend = false ) {
+		global $wpdb;
+		if ( $_REQUEST['mediacat_document_id'] ) {
+			$date = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
+			$sql = "UPDATE wp_posts SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
+				"post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['mediacat_document_id'];
+			$wpdb->query( $sql );
+		}
 
-        // set terms
+		// set terms
 
-        $selected_terms = array();
-        if ( $_REQUEST['cat'] ) $selected_terms[] = "'" . $wpdb->escape( $_REQUEST['cat'] ) . "'";
-        elseif ( $_REQUEST['media-categories'] ) {
-            foreach ( $_REQUEST['media-categories'] as $cat ) $selected_terms[] = "'" . $wpdb->escape( $cat ) . "'";
-        }
-        else {
-            foreach ( $this->get_media_categories() as $slug => $name )
-                $selected_terms[] = "'" . $wpdb->escape( $slug ) . "'";
-        }
+		$selected_terms = array();
+		if ( $_REQUEST['cat'] ) $selected_terms[] = "'" . $wpdb->escape( $_REQUEST['cat'] ) . "'";
+		elseif ( $_REQUEST['media-categories'] ) {
+			foreach ( $_REQUEST['media-categories'] as $cat ) $selected_terms[] = "'" . $wpdb->escape( $cat ) . "'";
+		}
+		else foreach ( $this->get_media_categories() as $slug => $name ) $selected_terms[] = "'" . $wpdb->escape( $slug ) . "'";
 
-        // pagination settings
+		// pagination settings
 
-        $posts_per_page = 20;
-        $page = $_REQUEST['pnum'];
-        if ( ! $page ) $page = 0;
-        else $page -= 1;
-        $start = $page * $posts_per_page;
-        $start_record = $start + 1;
+		$posts_per_page = 20;
+		$page = $_REQUEST['pnum'];
+		if ( ! $page ) $page = 0;
+		else $page -= 1;
+		$start = $page * $posts_per_page;
+		$start_record = $start + 1;
 
-        // subquery for media categories
+		// subquery for media categories
 
-        if ( count( $selected_terms ) > 0 ) {
+		if ( count( $selected_terms ) > 0 ) {
 
-            // create sub query
+			// create sub query
 
-            $sub_sql = "SELECT x.term_taxonomy_id FROM " . $wpdb->term_taxonomy . " AS x " .
-                    "LEFT JOIN " . $wpdb->terms . " AS t ON x.term_id = t.term_id WHERE " .
-                    "t.slug IN(" . implode( ",", $selected_terms ) . ")";
+			$sub_sql = "SELECT x.term_taxonomy_id FROM " . $wpdb->term_taxonomy . " AS x " .
+				"LEFT JOIN " . $wpdb->terms . " AS t ON x.term_id = t.term_id WHERE " .
+				"t.slug IN(" . implode( ",", $selected_terms ) . ")";
 
-            // main query that uses subquery
+			// main query that uses subquery
 
-            $sql = "SELECT SQL_CALC_FOUND_ROWS p.ID, p.post_title, p.post_mime_type, p.post_excerpt, p.post_date FROM " . $wpdb->posts . " AS p " .
-                    "LEFT JOIN " . $wpdb->term_relationships . " AS r ON p.ID = r.object_id " .
-                    "WHERE r.term_taxonomy_id IN($sub_sql) AND p.post_type='attachment' ";
+			$sql = "SELECT SQL_CALC_FOUND_ROWS p.ID, p.post_title, p.post_mime_type, p.post_excerpt, p.post_date FROM " . $wpdb->posts . " AS p " .
+				"LEFT JOIN " . $wpdb->term_relationships . " AS r ON p.ID = r.object_id " .
+				"WHERE r.term_taxonomy_id IN($sub_sql) AND p.post_type='attachment' ";
 
-            // keyword
+			// keyword
 
-            if ( $_REQUEST['keyword'] ) {
-                    $where = array();
-                    $k_fields = array( 'post_title', 'post_excerpt', 'post_content', 'guid' );
-                    $keyword = "'%" . $wpdb->escape( $_REQUEST['keyword'] ) . "%'";
-                    foreach ( $k_fields as $field ) {
-                            $where[] = "$field LIKE $keyword";
-                    }
-                    $sql .= "AND (" . implode( " OR ", $where ) . ") ";
-            }
+			if ( $_REQUEST['keyword'] ) {
+				$where = array();
+				$k_fields = array( 'post_title', 'post_excerpt', 'post_content', 'guid' );
+				$keyword = "'%" . $wpdb->escape( $_REQUEST['keyword'] ) . "%'";
+				foreach ( $k_fields as $field ) $where[] = "$field LIKE $keyword";
+				$sql .= "AND (" . implode( " OR ", $where ) . ") ";
+			}
 
-            // order by and limit for pagination
+			// order by and limit for pagination
 
-            $sql .= "ORDER BY p.post_title LIMIT $start, " . $posts_per_page;
+			$sql .= "ORDER BY p.post_title LIMIT $start, " . $posts_per_page;
 
-            //echo "<p>$sql</p>";
+			//echo "<p>$sql</p>";
 
-            // get results, found rows, and total pages
+			// get results, found rows, and total pages
 
-            $results = $wpdb->get_results( $sql, ARRAY_A );
-            $sql = 'SELECT FOUND_ROWS() AS found_rows';
-            $row = $wpdb->get_row( $sql, ARRAY_A );
-            $total_pages = ceil( $row['found_rows'] / $posts_per_page );
-        }
+			$results = $wpdb->get_results( $sql, ARRAY_A );
+			$sql = 'SELECT FOUND_ROWS() AS found_rows';
+			$row = $wpdb->get_row( $sql, ARRAY_A );
+			$total_pages = ceil( $row['found_rows'] / $posts_per_page );
+		}
 ?>
-<?php if ( $_REQUEST['mediacat_document_id'] ): ?>
-<div id="setting-error-settings_updated" class="updated settings-error"><p><strong>Document date updated successfully.</strong></p></div>
-<?php endif; ?>
-<br clear="all">
-<div class="wrap">
-        <div class="icon32" id="icon-upload"><br></div>
-<?php if ( ! $frontend ): ?>
-        <h2><?php _e( 'Category Library', self::nspace ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
-        <div class="tablenav top">
-                <form id="doc-library-search-form">
-                <div class="alignleft actions">
-                        <?php _e( 'View By Category', self::nspace ); ?>: <select name="doc-library-cat" id="doc-library-cat">
-                                <option value="">-- <?php _e( 'All', self::nspace ); ?> --</option>
-<?php foreach ( $this->get_media_categories() as $slug => $name ): ?>
-                                <option value="<?php echo $slug; ?>"<?php if ( $slug == $_REQUEST['cat'] ): ?> selected<?php endif; ?>><?php echo $name; ?></option>
-<?php endforeach; ?>
-                        </select>
-                </div>
-                <div class="alignleft actions">
-                        <input type="text" id="doc-library-keyword" name="doc-library-keyword" value="<?php echo $_REQUEST['keyword']; ?>"> <input type="button" id="doc-library-search" class="button button-secondary action" value="<?php _e( 'Search', self::nspace ); ?>">
-        </div>
-           </form>
-<?php endif; ?>
-<?php
-        $pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
-        if ( $row['found_rows'] ) $this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
-        else echo '<p style="clear:both">' . __( 'No results found.', self::nspace ) . '</p>';
-    }
-
-    /**
-    *Media categories
-    *
-    *@return array
-    *@since 0.1
-    */
-    function get_media_categories ( $by_name_and_id = false ) {
-        global $wpdb;
-        $sub_sql = "SELECT term_taxonomy_id FROM " . $wpdb->term_taxonomy . " WHERE taxonomy='" . $this->settings_data['taxonomy_name'] . "'";
-        $sql = "SELECT DISTINCT t.term_id, t.name, t.slug FROM " . $wpdb->term_relationships . " AS r " .
-                "LEFT JOIN " . $wpdb->term_taxonomy . " AS x ON x.term_taxonomy_id = r.term_taxonomy_id " .
-                "LEFT JOIN " . $wpdb->terms . " AS t ON t.term_id = x.term_id WHERE r.term_taxonomy_id IN($sub_sql) ORDER BY t.name";
-        $results = $wpdb->get_results( $sql, ARRAY_A );
-        $mediacats = array();
-        $key = 'slug';
-        $val = 'name';        
-        if ( $by_name_and_id ) {
-                $key = 'name';
-                $val = 'term_id';
-        }
-        foreach ( $results as $result ) $mediacats[$result[$key]] = $result[$val];
-        return $mediacats;
-    }
+		$pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
+		if ( $row['found_rows'] ) $this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
+		else echo '<p style="clear:both">' . __( 'No results found.', self::nspace ) . '</p>';
+	}
 
     /**
     *Media categories library list
