@@ -25,7 +25,8 @@
 <?php if ( $pagination ): ?>
         <div class="pagination docs-pagination">
                 <div class="pagination-details">
-                <?php echo get_mediacat_library_pagination_details( $start_record, $posts_per_page, $total_records, $total_pages, $pagination ); ?>
+                        <?php echo $this->get_mediacat_library_pagination_details( $start_record, $posts_per_page, $total_records, $total_pages, $pagination ); ?>
+
                 </div>
         </div>
 <?php endif; ?>
@@ -51,8 +52,8 @@
                                 <?php if ( ! $frontend ): ?><th><?php _e( 'Options', self::nspace ); ?></th><?php endif; ?>
                         </tr>
                 </thead>
-<?php foreach ( $results as $result ): ?>
                 <tbody>
+<?php foreach ( $results as $result ): ?>
                         <tr>
 <?php $link = wp_get_attachment_url( $result['ID'] ); ?>
                                 <td><a target="_BLANK" href="<?php echo $link; ?>"><?php echo $result['post_title']; ?></a></td>
@@ -80,14 +81,12 @@
                                                         <option value="<?php echo $i; ?>"<?php if ( $month == $i ): ?> selected<?php endif; ?>><?php echo $months[$i]; ?></option>
                                         <?php endfor; ?>
                                                 </select>
-
                                                 <select name="day">
                                         <?php for( $i = 1; $i <= 31; $i++ ): ?>
                                         <?php if ( $i < 10 ) $i = '0' . $i; ?>
                                                         <option value="<?php echo $i; ?>"<?php if ( $day == $i ): ?> selected<?php endif; ?>><?php echo $i; ?></option>
                                         <?php endfor; ?>
                                                 </select>
-
                                                 <select name="year">
                                         <?php for( $i = ( date( 'Y' ) - 20 ); $i <= ( date( 'Y' ) + 1 ); $i++ ): ?>
                                         <?php if ( $i < 10 ) $i = '0' . $i; ?>
@@ -108,12 +107,13 @@
                                 </td>
 <?php endif; ?>
                         </tr>
-                </tbody>
 <?php endforeach; ?>
+                </tbody>
         </table>
 <?php if ( $frontend ): ?>
         <div class="pagination-details">
-                <?php echo get_mediacat_library_pagination_details( $start_record, $posts_per_page, $total_records, $total_pages, $pagination ); ?>
+                <?php echo $this->get_mediacat_library_pagination_details( $start_record, $posts_per_page, $total_records, $total_pages, $pagination ); ?>
+
         </div>
 <?php else: ?>
         <div class="tablenav-pages pagination-records">
@@ -123,5 +123,6 @@
                         <?php echo $pagination; ?>
                 </span>
 <?php endif; ?>
+
         </div>
 <?php endif; ?>

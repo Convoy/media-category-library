@@ -164,7 +164,7 @@ class WPMediaCategoryLibrary {
         function media_category_parse_request_actions( &$wp ) {
                 global $wpdb;
                 if ( array_key_exists( 'mediacat_library', $wp->query_vars ) ) {
-                        if ( current_user_can( 'manage_options' ) ) {
+                        //if ( current_user_can( 'manage_options' ) ) {
                                 if ( array_key_exists( 'mediacat_page', $wp->query_vars ) ) {
                                         $_REQUEST['pnum'] = $wp->query_vars['mediacat_page'];
                                 }
@@ -181,8 +181,8 @@ class WPMediaCategoryLibrary {
                                 }
                                 add_filter( 'body_class', array( &$this, 'body_class' ) );
                                 include $this->get_plugin_path() . '/views/search.php';
-                        }
-                        else echo 'Not authorized.';
+                        //}
+                        //else echo 'Not authorized.';
                         exit;
                 }
                 elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
@@ -332,7 +332,6 @@ class WPMediaCategoryLibrary {
 			$row = $wpdb->get_row( $sql, ARRAY_A );
 			$total_pages = ceil( $row['found_rows'] / $posts_per_page );
 		}
-?>
 		$pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
 		if ( $row['found_rows'] ) $this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
 		else echo '<p style="clear:both">' . __( 'No results found.', self::nspace ) . '</p>';
