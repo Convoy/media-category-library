@@ -156,6 +156,34 @@ class WPMediaCategoryLibrary {
         }
 
         /**
+        *Media category title
+        *
+        *@return void
+        *@since 0.1
+        */
+        function media_category_title( $title ) {
+                $title = $this->settings_data['library_name'];
+        }
+
+        function media_category_content( $content ) {
+                ob_start();
+                include $this->get_plugin_path() . '/views/search.php';
+                $content = ob_get_contents();
+                ob_end_clean();
+                return $content;
+        }
+
+function custom_page_remove_filters() {
+    remove_filter( 'the_title', array( &$this, 'media_category_title' ) );
+    remove_filter( 'the_content', array( &$this, 'media_category_content' ) );
+}
+ 
+function custom_page_add_filters() {
+    add_filter('the_title', array( &$this, 'media_category_title' ) );
+    add_filter('the_content', array( &$this, 'media_category_content' ) );
+}
+
+        /**
         *Parse request function
         *
         *@return void
@@ -164,25 +192,36 @@ class WPMediaCategoryLibrary {
         function media_category_parse_request_actions( &$wp ) {
                 global $wpdb;
                 if ( array_key_exists( 'mediacat_library', $wp->query_vars ) ) {
-                        //if ( current_user_can( 'manage_options' ) ) {
-                                if ( array_key_exists( 'mediacat_page', $wp->query_vars ) ) {
-                                        $_REQUEST['pnum'] = $wp->query_vars['mediacat_page'];
+                        if ( array_key_exists( 'mediacat_page', $wp->query_vars ) ) {
+                                $_REQUEST['pnum'] = $wp->query_vars['mediacat_page'];
+                        }
+                        else {
+                                if ( ! $_REQUEST['media_category_submit'] ) {
+                                        foreach ( $this->get_media_categories() as $slug => $name ) $_REQUEST['media-categories'][] = $slug;
                                 }
-                                else {
-                                        if ( ! $_REQUEST['media_category_submit'] ) {
-                                                foreach ( $this->get_media_categories() as $slug => $name ) $_REQUEST['media-categories'][] = $slug;
-                                        }
-                                }
-                                if ( array_key_exists( 'mediacats', $wp->query_vars ) ) {
-                                        $_REQUEST['media-categories'] = explode( ',', $wp->query_vars['mediacats'] );
-                                }
-                                if ( array_key_exists( 'mediacat_keyword', $wp->query_vars ) ) {
-                                        $_REQUEST['keyword'] = $wp->query_vars['mediacat_keyword'];
-                                }
-                                add_filter( 'body_class', array( &$this, 'body_class' ) );
-                                include $this->get_plugin_path() . '/views/search.php';
-                        //}
-                        //else echo 'Not authorized.';
+                        }
+                        if ( array_key_exists( 'mediacats', $wp->query_vars ) ) {
+                                $_REQUEST['media-categories'] = explode( ',', $wp->query_vars['mediacats'] );
+                        }
+                        if ( array_key_exists( 'mediacat_keyword', $wp->query_vars ) ) {
+                                $_REQUEST['keyword'] = $wp->query_vars['mediacat_keyword'];
+                        }
+
+                        global $wp_query;
+                        $wp_query->post_count = 1;
+
+                        add_action( 'get_header', array( &$this, 'custom_page_remove_filters' ) );
+                        add_action( 'get_sidebar', array( &$this, 'custom_page_remove_filters' ) );
+                        add_action( 'get_footer', array( &$this, 'custom_page_remove_filters' ) );
+                        add_action( 'loop_start', array( &$this, 'custom_page_add_filters' ) );
+
+                        // add body class
+
+                        add_filter( 'body_class', array( &$this, 'body_class' ) );
+
+                        // include page template
+
+                        include get_page_template();
                         exit;
                 }
                 elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
