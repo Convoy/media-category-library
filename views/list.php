@@ -101,7 +101,8 @@
 <?php if ( ! $frontend ): ?>
                                 <td>
                                         <ul>
-                                                <li><a href="<?php echo admin_url(); ?>media.php?attachment_id=<?php echo $result['ID']; ?>&action=edit"><?php _e( 'Edit', self::nspace ); ?></a></li>
+                                                <li><a href="<?php echo admin_url(); ?>media.php?attachment_id=<?php echo $result['ID']; ?>&amp;action=edit"><?php _e( 'Edit', self::nspace ); ?></a></li>
+                                                <li><a href="<?php echo wp_nonce_url( "post.php?action=delete&amp;post=" . $result['ID'], 'delete-attachment_' . $result['ID'] ); ?>" class="delete-file"><?php _e( 'Delete', self::nspace ); ?></a></li>
                                                 <li><a class="thickbox" href="/mediacat-pages/<?php echo $result['ID']; ?>/"><?php _e( 'Pages', self::nspace ); ?></a></li>
                                         </ul>
                                 </td>

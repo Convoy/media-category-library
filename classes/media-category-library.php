@@ -156,9 +156,8 @@ class WPMediaCategoryLibrary {
         function get_media_categories ( $by_name_and_id = false ) {
                 global $wpdb;
                 $sub_sql = "SELECT term_taxonomy_id FROM " . $wpdb->term_taxonomy . " WHERE taxonomy='" . $this->settings_data['taxonomy_name'] . "'";
-                $sql = "SELECT DISTINCT t.term_id, t.name, t.slug FROM " . $wpdb->term_relationships . " AS r " .
-                        "LEFT JOIN " . $wpdb->term_taxonomy . " AS x ON x.term_taxonomy_id = r.term_taxonomy_id " .
-                        "LEFT JOIN " . $wpdb->terms . " AS t ON t.term_id = x.term_id WHERE r.term_taxonomy_id IN($sub_sql) ORDER BY t.name";
+                $sql = "SELECT DISTINCT t.term_id, t.name, t.slug FROM " . $wpdb->term_taxonomy . " AS x " .
+                        "LEFT JOIN " . $wpdb->terms . " AS t ON t.term_id = x.term_id WHERE x.term_taxonomy_id IN($sub_sql) ORDER BY t.name";
                 $results = $wpdb->get_results( $sql, ARRAY_A );
                 $mediacats = array();
                 $key = 'slug';
