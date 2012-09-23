@@ -66,7 +66,7 @@
         $time_format = get_option( 'date_format' ) . ' ' .  get_option( 'time_format' );
 ?>
                                 <td><?php echo implode( ', ', $mediacats ); ?></td>
-                                <td style="width: 40%"><?php echo $result['post_excerpt']; ?></td>
+                                <td><?php echo $result['post_excerpt']; ?></td>
                                 <td>
 <?php $date = get_the_time( 'm/d/Y', $result['ID'] ); ?>
 <?php if ( $frontend ): ?>
