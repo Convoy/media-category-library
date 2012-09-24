@@ -91,6 +91,10 @@ class WPMediaCategoryLibrary {
 		add_filter( 'query_vars', array( &$this, 'media_category_query_vars_actions' ) );
 		add_action( 'parse_request', array( &$this, 'media_category_parse_request_actions' ) );
 
+		// flush rewrite rules, if necessary
+
+		add_action( 'wp_loaded', array( &$this, 'flush_rewrite_rules' ) );
+
 		// Media category taxonomy
 
 		add_action( 'init', array( &$this, 'create_taxonomy' ) );
@@ -102,17 +106,42 @@ class WPMediaCategoryLibrary {
 	}
 
         /**
+        *Flush rewrite rules function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function flush_rewrite_rules(){
+                $rules = get_option( 'rewrite_rules' );
+                if ( ! isset( $rules[$rewrite_url . '/?$'] ) ) {
+			global $wp_rewrite;
+			$wp_rewrite->flush_rules();
+                }
+        }
+
+        /**
+        *Get rewrite url
+        *
+        *@return void
+        *@since 0.1
+        */
+	function get_rewrite_url() {
+		$rewrite_url = 'mediacat\-library';
+                if ( $this->settings_data['rewrite_url'] ) {
+                        $rewrite_url = $this->settings_data['rewrite_url'];
+                        $rewrite_url = str_replace( '-', '\-', $rewrite_url );
+                }
+		return $rewrite_url;
+	}
+
+        /**
         *Rewrites function
         *
         *@return void
         *@since 0.1
         */
         function media_category_rewrites( $wpr ) {
-                $rewrite_url = 'mediacat\-library';
-                if ( $this->settings_data['rewrite_url'] ) {
-                        $rewrite_url = $this->settings_data['rewrite_url'];
-                        $rewrite_url = str_replace( '-', '\-', $rewrite_url );
-                }
+                $rewrite_url = $this->get_rewrite_url();
                 $rules = array(
                         'mediacat\-pages/(\d+)/?' => 'index.php?mediacat_pages=1&attachment_id=' .
                                 $wpr->preg_index(1),
@@ -597,7 +626,7 @@ class WPMediaCategoryLibrary {
         function add_admin_menus () {
                 if ( current_user_can( 'manage_options' ) ) {
                         add_options_page( self::pname, self::pname, 'manage_options', self::nspace . '-settings', array( &$this, 'settings_page' ) );
-                        add_media_page( 'Category Library', 'Category Library', 'manage_options', self::nspace . '-library', array( &$this, 'mediacat_library' ) );
+                        add_media_page( $this->settings_data['title'], $this->settings_data['title'], 'manage_options', self::nspace . '-library', array( &$this, 'mediacat_library' ) );
                 }
         }
 
