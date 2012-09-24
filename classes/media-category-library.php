@@ -40,7 +40,9 @@ class WPMediaCategoryLibrary {
 
 		// set default taxonomy_name
 
+                if ( ! @strlen( $this->settings_data['rewrite_url'] ) ) $this->settings_data['rewrite_url'] = 'mediacat-library';
 		if ( ! @strlen( $this->settings_data['taxonomy_name'] ) ) $this->settings_data['taxonomy_name'] = 'media-category';
+                if ( ! @strlen( $this->settings_data['title'] ) ) $this->settings_data['title'] = 'Media Category Library';
 
 		if ( is_admin() ) {
 
@@ -69,6 +71,11 @@ class WPMediaCategoryLibrary {
                                                                 'type' => 'text',
                                                                 'default' => 'mediacat-library'
                                                         ),
+                                                        'title' => array(
+                                                                'label' => __( 'Media Category Library Title', self::nspace ),
+                                                                'type' => 'text',
+                                                                'default' => 'Media Category Library'
+                                                        ),
                                                         'include_css' => array(
                                                                 'label' => __( 'Include CSS', self::nspace ),
                                                                 'type' => 'select',
@@ -88,9 +95,10 @@ class WPMediaCategoryLibrary {
 
 		add_action( 'init', array( &$this, 'create_taxonomy' ) );
 
-		// shortcode
+		// shortcodes
 
-		add_shortcode( 'mediacategory', array( &$this, 'get_mediacategory_shortcode' ) );
+		add_shortcode( 'mediacat', array( &$this, 'get_mediacategory_shortcode' ) );
+                add_shortcode( 'mediacatform', array( &$this, 'get_mediacategoryform_shortcode' ) );
 	}
 
         /**
@@ -137,6 +145,16 @@ class WPMediaCategoryLibrary {
         }
 
         /**
+        *Title function
+        *
+        *@return string
+        *@since 0.1
+        */
+        function media_category_title () {
+                return $this->settings_data['title'];
+        }
+
+        /**
         *Body class function
         *
         *@return void
@@ -168,16 +186,6 @@ class WPMediaCategoryLibrary {
                 }
                 foreach ( $results as $result ) $mediacats[$result[$key]] = $result[$val];
                 return $mediacats;
-        }
-
-        /**
-        *Media category title
-        *
-        *@return void
-        *@since 0.1
-        */
-        function media_category_title( $title ) {
-                $title = $this->settings_data['library_name'];
         }
 
         /**
@@ -247,6 +255,10 @@ class WPMediaCategoryLibrary {
                         add_action( 'get_sidebar', array( &$this, 'media_category_remove_filters' ) );
                         add_action( 'get_footer', array( &$this, 'media_category_remove_filters' ) );
                         add_action( 'loop_start', array( &$this, 'media_category_add_filters' ) );
+
+                        // add title
+
+                        add_filter( 'wp_title', array( &$this, 'media_category_title' ) );
 
                         // add body class
 
@@ -492,14 +504,29 @@ class WPMediaCategoryLibrary {
         }
 
         /**
-        *Shortcode
+        *Shortcode for form
+        *
+        *@return string
+        *@since 0.1
+        */
+        function get_mediacategoryform_shortcode( $atts = array() ) {
+                
+                // add css
+
+                if ( $this->settings_data['include_css'] != 'no' )
+                        wp_enqueue_style( 'wp-media-category-library', $this->get_plugin_url() . 'css/media-category-library.css' );
+                return $this->media_category_content();
+        }
+
+        /**
+        *Shortcode for list of files
         *
         *@return string
         *@since 0.1
         */
         function get_mediacategory_shortcode( $atts = array() ) {
                 ob_start(); 	
-                $terms = get_terms( $this->settings_data['media-category'], array( 'hide_empty' => false ) );
+                $terms = get_terms( $this->settings_data['taxonomy_name'], array( 'hide_empty' => false ) );
                 $cats = explode( ',', $atts['cats'] );
                 $selected_terms = array();
                 foreach ( $cats as $cat ) {
@@ -518,7 +545,7 @@ class WPMediaCategoryLibrary {
                                 'post_type' => 'attachment',
                                 'tax_query' => array(
                                                         array(
-                                                        'taxonomy' => $this->settings_data['media-category'],
+                                                        'taxonomy' => $this->settings_data['taxonomy_name'],
                                                         'field' => 'slug',
                                                         'terms' => $selected_terms
                                                         )

@@ -43,6 +43,7 @@
         <table class="widefat responsive">
                 <thead>
                         <tr>
+                                <th></th>
                                 <th><?php _e( 'File', self::nspace ); ?></th>
                                 <th><?php _e( 'Category', self::nspace ); ?></th>
                                 <th><?php _e( 'Caption', self::nspace ); ?></th>
@@ -56,12 +57,11 @@
 <?php $link = wp_get_attachment_url( $result['ID'] ); ?>
 <?php list( $url, $width, $height ) = wp_get_attachment_image_src( $result['ID'], 'thumbnail', true ); ?>
                                 <td>
-                                        <ul>
-                                                <li>Title: <a target="_BLANK" href="<?php echo $link; ?>"><?php echo $result['post_title']; ?></a></li>
-                                                <li>File Name: <?php echo basename( $link ); ?></li>
-                                                <li>File Type: <?php echo $result['post_mime_type']; ?></li>
-                                                <li><a target="_BLANK" href="<?php echo $link; ?>"><img src="<?php echo $url; ?>" border="0" width="60" height="60"></a></li>
-                                        </ul>
+                                        <a target="_BLANK" href="<?php echo $link; ?>"><img src="<?php echo $url; ?>" border="0" width="60" height="60"></a>
+                                </td>
+                                <td>
+                                        <a target="_BLANK" href="<?php echo $link; ?>"><?php echo $result['post_title']; ?></a><br>
+                                        <?php echo strtoupper( preg_replace( "/.*\//", "", $result['post_mime_type'] ) ); ?>
                                 </td>
 <?php
         $mediacats = array();
