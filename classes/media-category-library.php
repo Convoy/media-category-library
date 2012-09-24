@@ -232,25 +232,13 @@ class WPMediaCategoryLibrary {
         }
 
         /**
-        *Media category remove filters
+        *Media category title loop
         *
         *@return void
         *@since 0.1
         */
-        function media_category_remove_filters() {
-                remove_filter( 'the_title', array( &$this, 'media_category_title' ) );
-                remove_filter( 'the_content', array( &$this, 'media_category_content' ) );
-        }
-
-        /**
-        *Media category add filters
-        *
-        *@return void
-        *@since 0.1
-        */
-        function media_category_add_filters() {
-                add_filter('the_title', array( &$this, 'media_category_title' ) );
-                add_filter('the_content', array( &$this, 'media_category_content' ) );
+        function media_category_title_loop() {
+                add_filter( 'the_title', array( &$this, 'media_category_title' ) );
         }
 
         /**
@@ -277,31 +265,34 @@ class WPMediaCategoryLibrary {
                                 $_REQUEST['keyword'] = $wp->query_vars['mediacat_keyword'];
                         }
 
+			// set post count and tell WP that this is a page
+
                         global $wp_query;
                         $wp_query->post_count = 1;
+			$wp_query->is_page = true;
 
-                        add_action( 'get_header', array( &$this, 'media_category_remove_filters' ) );
-                        add_action( 'get_sidebar', array( &$this, 'media_category_remove_filters' ) );
-                        add_action( 'get_footer', array( &$this, 'media_category_remove_filters' ) );
-                        add_action( 'loop_start', array( &$this, 'media_category_add_filters' ) );
+			// add content
 
-                        // add title
+			add_filter( 'the_content', array( &$this, 'media_category_content' ) );
 
-                        add_filter( 'wp_title', array( &$this, 'media_category_title' ) );
+			// add title
 
-                        // add body class
+			add_filter( 'loop_start', array( &$this, 'media_category_title_loop' ) );
+			add_filter( 'wp_title', array( &$this, 'media_category_title' ) );
 
-                        add_filter( 'body_class', array( &$this, 'body_class' ) );
+			// add body class
 
-                        // add css
+			add_filter( 'body_class', array( &$this, 'body_class' ) );
 
-                        if ( $this->settings_data['include_css'] != 'no' )
-                                wp_enqueue_style( 'wp-media-category-library', $this->get_plugin_url() . 'css/media-category-library.css' );
+			// add css
 
-                        // include page template
+			if ( $this->settings_data['include_css'] != 'no' )
+				wp_enqueue_style( 'wp-media-category-library', $this->get_plugin_url() . 'css/media-category-library.css' );
 
-                        include get_page_template();
-                        exit;
+			// include page template
+
+			include get_page_template();
+			exit;
                 }
                 elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
                         if ( current_user_can( 'manage_options' ) ) {
