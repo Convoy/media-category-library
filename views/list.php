@@ -43,9 +43,7 @@
         <table class="widefat responsive">
                 <thead>
                         <tr>
-                                <th><?php _e( 'Title', self::nspace ); ?></th>
                                 <th><?php _e( 'File', self::nspace ); ?></th>
-                                <th><?php _e( 'Type', self::nspace ); ?></th>
                                 <th><?php _e( 'Category', self::nspace ); ?></th>
                                 <th><?php _e( 'Caption', self::nspace ); ?></th>
                                 <th><?php _e( 'Date', self::nspace ); ?></th>
@@ -56,9 +54,15 @@
 <?php foreach ( $results as $result ): ?>
                         <tr>
 <?php $link = wp_get_attachment_url( $result['ID'] ); ?>
-                                <td><a target="_BLANK" href="<?php echo $link; ?>"><?php echo $result['post_title']; ?></a></td>
-                                <td><?php echo basename( $link ); ?></td>
-                                <td><?php echo $result['post_mime_type']; ?></td>
+<?php list( $url, $width, $height ) = wp_get_attachment_image_src( $result['ID'], 'thumbnail', true ); ?>
+                                <td>
+                                        <ul>
+                                                <li>Title: <a target="_BLANK" href="<?php echo $link; ?>"><?php echo $result['post_title']; ?></a></li>
+                                                <li>File Name: <?php echo basename( $link ); ?></li>
+                                                <li>File Type: <?php echo $result['post_mime_type']; ?></li>
+                                                <li><a target="_BLANK" href="<?php echo $link; ?>"><img src="<?php echo $url; ?>" border="0" width="60" height="60"></a></li>
+                                        </ul>
+                                </td>
 <?php
         $mediacats = array();
         $terms = wp_get_object_terms( $result['ID'], $this->settings_data['taxonomy_name'] );
