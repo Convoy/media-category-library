@@ -21,6 +21,7 @@
         </div>
            </form>
 <?php endif; ?>
+<?php if ( $total_records > 0 ): ?>
 <?php if ( $frontend ): ?>
 <?php if ( $pagination ): ?>
         <div class="pagination docs-pagination">
@@ -56,7 +57,7 @@
                         <tr>
 <?php $link = wp_get_attachment_url( $result['ID'] ); ?>
 <?php list( $url, $width, $height ) = wp_get_attachment_image_src( $result['ID'], 'thumbnail', true ); ?>
-                                <td>
+                                <td width="61">
                                         <a target="_BLANK" href="<?php echo $link; ?>"><img src="<?php echo $url; ?>" border="0" width="60" height="60"></a>
                                 </td>
                                 <td>
@@ -130,4 +131,7 @@
 <?php endif; ?>
 
         </div>
+<?php endif; ?>
+<?php else: ?>
+	<p style="clear:both"><?php _e( 'No results found.', self::nspace ); ?></p>
 <?php endif; ?>

@@ -452,8 +452,7 @@ class WPMediaCategoryLibrary {
 			$total_pages = ceil( $row['found_rows'] / $posts_per_page );
 		}
 		$pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
-		if ( $row['found_rows'] ) $this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
-		else echo '<p style="clear:both">' . __( 'No results found.', self::nspace ) . '</p>';
+		$this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
 	}
 
         /**
