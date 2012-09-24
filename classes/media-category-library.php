@@ -446,9 +446,9 @@ class WPMediaCategoryLibrary {
         function get_mediacat_library_pagination( $total_pages, $page, $frontend = false ) {
                 if ( ! $_REQUEST['pnum'] ) $_REQUEST['pnum'] = 1;
                 if ( ! $_REQUEST['media-categories'] ) $_REQUEST['media-categories'][] = 'none';
-                $prev_link = '/mediacat-library/' . ( $_REQUEST['pnum'] - 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
+                $prev_link = '/' . $this->settings_data['rewrite_url'] . '/' . ( $_REQUEST['pnum'] - 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
                 if ( $_REQUEST['keyword'] ) $prev_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
-                $next_link = '/mediacat-library/' . ( $_REQUEST['pnum'] + 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
+                $next_link = '/' . $this->settings_data['rewrite_url'] . '/' . ( $_REQUEST['pnum'] + 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
                 if ( $_REQUEST['keyword'] ) $next_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
                 if ( ! $frontend ) {
                         $tmp = array();
@@ -510,7 +510,7 @@ class WPMediaCategoryLibrary {
         *@since 0.1
         */
         function get_mediacategoryform_shortcode( $atts = array() ) {
-                
+
                 // add css
 
                 if ( $this->settings_data['include_css'] != 'no' )
