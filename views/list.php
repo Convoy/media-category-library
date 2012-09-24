@@ -71,7 +71,7 @@
 ?>
                                 <td><?php echo implode( ', ', $mediacats ); ?></td>
                                 <td><?php echo $result['post_excerpt']; ?></td>
-                                <td>
+                                <td width="200">
 <?php $date = get_the_time( 'm/d/Y', $result['ID'] ); ?>
 <?php if ( $frontend ): ?>
                                         <abbr title="<?php echo get_the_time( 'M j, Y', $result['ID'] ); ?>"><?php echo $date; ?></abbr>
@@ -98,7 +98,7 @@
                                         <?php endfor; ?>
                                                 </select>
                                                 <input type="hidden" name="mediacat_document_id" value="<?php echo $result['ID']; ?>">
-                                                <input type="submit" value="Change Date">
+                                                <input type="submit" value="<?php _e( 'Change Date', self::nspace ); ?>">
                                         </form>
 <?php endif; ?>
                                 </td>
