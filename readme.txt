@@ -18,6 +18,7 @@ Features include:
 * Edit or delete media categories
 * View files associated to categories in a separate submenu page of Media called Media Category Library
 * Change the upload date of files in the Media Category Library
+* In Media Category Library, view a list of Pages that have the file included in the content.
 * Display lists of files by categories using a shortcode: [mediacat cats="Documents,Images"]
 * Front end search form with customizable rewrite url (default is /mediacat-library/ but this can be changed in settings)
 * Display front end search form by shortcode: [mediacatform]
@@ -31,12 +32,21 @@ Features include:
 
 = How do I access the frontend search form? =
 
-The frontend search form is available as a rewrite URL; the default URL is http://www.YOUR_DOMAIN_HERE.com/mediacat-library/. You can change the rewrite URL under Settings -> Media Category.
+The frontend search form is available as a rewrite URL; the default URL is http://www.YOUR_DOMAIN_HERE.com/mediacat-library/. You can change the rewrite URL under Settings -> Media Category Library.
 
 == Screenshots ==
 
 1. This is a screenshot of the Media Category settings page.
 2. This is a screenshot of the Edit Media page with a Media Category dropdown.
 3. This is a screenshot of the backend Media Category Library page.
+4. This is a screenshot of the frontend search form.
 
 == Changelog ==
+
+= 0.1 =
+First release!
+
+== Upgrade Notice ==
+
+= 0.1 =
+First release!

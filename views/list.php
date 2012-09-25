@@ -5,7 +5,7 @@
 <br clear="all">
 <div class="wrap">
         <div class="icon32" id="icon-upload"><br></div>
-        <h2><?php _e( 'Category Library', self::nspace ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
+        <h2><?php _e( self::pname, self::nspace ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
         <div class="tablenav top">
                 <form id="doc-library-search-form">
                 <div class="alignleft actions">

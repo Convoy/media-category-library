@@ -658,6 +658,7 @@ class WPMediaCategoryLibrary {
                 elseif ( $hook == 'media_page_wpmediacatlib-library' ) {
                         wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_url() . 'js/media-category-library.js', array( 'jquery' ), self::version, true );
                         wp_enqueue_script( 'thickbox' );
+			wp_enqueue_style( 'thickbox' );
                 }
         }
 
