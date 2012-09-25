@@ -6,7 +6,7 @@ class WPMediaCategoryLibrary {
         *Variables
         */
         const nspace = 'wpmediacatlib';
-        const pname = 'Media Category';
+        const pname = 'Media Category Library';
         const term = 'mediacategory';
         const version = 0.1;
         protected $_plugin_file;

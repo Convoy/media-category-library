@@ -24,8 +24,19 @@ Features include:
 
 == Installation ==
 
+1. Upload `wp-media-category-library` folder to the `/wp-content/plugins/` directory
+1. Activate the plugin through the 'Plugins' menu in WordPress
+
 == Frequently Asked Questions ==
 
+= How do I access the frontend search form? =
+
+The frontend search form is available as a rewrite URL; the default URL is http://www.YOUR_DOMAIN_HERE.com/mediacat-library/. You can change the rewrite URL under Settings -> Media Category.
+
 == Screenshots ==
+
+1. This is a screenshot of the Media Category settings page.
+2. This is a screenshot of the Edit Media page with a Media Category dropdown.
+3. This is a screenshot of the backend Media Category Library page.
 
 == Changelog ==
