@@ -2,70 +2,70 @@
 
 class WPMediaCategoryLibrary {
 
-	/**
-	*Variables
-	*/
-	const nspace = 'wpmediacatlib';
-	const pname = 'Media Category';
-	const term = 'mediacategory';
-	const version = 0.1;
-	protected $_plugin_file;
-	protected $_plugin_dir;
-	protected $_plugin_path;
-	protected $_plugin_url;
+        /**
+        *Variables
+        */
+        const nspace = 'wpmediacatlib';
+        const pname = 'Media Category';
+        const term = 'mediacategory';
+        const version = 0.1;
+        protected $_plugin_file;
+        protected $_plugin_dir;
+        protected $_plugin_path;
+        protected $_plugin_url;
 
-	var $settings_fields = array();
-	var $settings_data = array();
-	var $debug = false;
+        var $settings_fields = array();
+        var $settings_data = array();
+        var $debug = false;
 
-	/**
-	*Constructor
-	*
-	*@return void
-	*@since 0.1
-	*/
-	function __construct() {}
+        /**
+        *Constructor
+        *
+        *@return void
+        *@since 0.1
+        */
+        function __construct() {}
 
-	/**
-	*Init function
-	*
-	*@return void
-	*@since 0.1
-	*/
-	function init() {
+        /**
+        *Init function
+        *
+        *@return void
+        *@since 0.1
+        */
+        function init() {
 
-		// settings data -- leave at top of constructor
+                // settings data -- leave at top of constructor
 
-		$this->settings_data = unserialize( get_option( self::nspace . '-settings' ) );
+                $this->settings_data = unserialize( get_option( self::nspace . '-settings' ) );
 
-		// set default taxonomy_name
+                // set default taxonomy_name
 
                 if ( ! @strlen( $this->settings_data['rewrite_url'] ) ) $this->settings_data['rewrite_url'] = 'mediacat-library';
-		if ( ! @strlen( $this->settings_data['taxonomy_name'] ) ) $this->settings_data['taxonomy_name'] = 'media-category';
+                if ( ! @strlen( $this->settings_data['taxonomy_name'] ) ) $this->settings_data['taxonomy_name'] = 'media-category';
                 if ( ! @strlen( $this->settings_data['title'] ) ) $this->settings_data['title'] = 'Media Category Library';
 
-		if ( is_admin() ) {
+                if ( is_admin() ) {
 
-			// add menus
+                        // add menus
 
-			add_action( 'admin_menu', array( &$this, 'add_admin_menus' ), 30 );
+                        add_action( 'admin_menu', array( &$this, 'add_admin_menus' ), 30 );
 
-			// enqueue css/js
+                        // enqueue css/js
 
-			add_action( 'admin_enqueue_scripts', array( &$this, 'add_admin_scripts' ), 10, 1 );
+                        add_action( 'admin_enqueue_scripts', array( &$this, 'add_admin_scripts' ), 10, 1 );
 
-			// settings fields
+                        // settings fields
 
-			$this->settings_fields = array(
-							'legend_1' => array(
-								'label' => __( 'General Settings', self::nspace ),
-								'type' => 'legend'
-							),
-							'taxonomy_name' => array(
-								'label' => __( 'Taxonomy Name (should be all lowercase)', self::nspace ),
-								'type' => 'text',
-								'default' => 'media-category'
-							),
+                        $this->settings_fields = array(
+                                                        'legend_1' => array(
+                                                                'label' => __( 'General Settings', self::nspace ),
+                                                                'type' => 'legend'
+                                                        ),
+                                                        'taxonomy_name' => array(
+                                                                'label' => __( 'Taxonomy Name (should be all lowercase)', self::nspace ),
+                                                                'type' => 'text',
+                                                                'default' => 'media-category'
+                                                        ),
                                                         'rewrite_url' => array(
                                                                 'label' => __( 'Media Category Library Rewrite URL', self::nspace ),
                                                                 'type' => 'text',
@@ -82,28 +82,28 @@ class WPMediaCategoryLibrary {
                                                                 'values' => array( 'yes' => 'Yes', 'no' => 'No' ),
                                                                 'default' => 'yes'
                                                         )
-						);
-		}
+                                                );
+                }
 
-		// add custom rewrites
+                // add custom rewrites
 
-		add_filter( 'generate_rewrite_rules', array( &$this, 'media_category_rewrites' ) );
-		add_filter( 'query_vars', array( &$this, 'media_category_query_vars_actions' ) );
-		add_action( 'parse_request', array( &$this, 'media_category_parse_request_actions' ) );
+                add_filter( 'generate_rewrite_rules', array( &$this, 'media_category_rewrites' ) );
+                add_filter( 'query_vars', array( &$this, 'media_category_query_vars_actions' ) );
+                add_action( 'parse_request', array( &$this, 'media_category_parse_request_actions' ) );
 
-		// flush rewrite rules, if necessary
+                // flush rewrite rules, if necessary
 
-		add_action( 'wp_loaded', array( &$this, 'flush_rewrite_rules' ) );
+                add_action( 'wp_loaded', array( &$this, 'flush_rewrite_rules' ) );
 
-		// Media category taxonomy
+                // Media category taxonomy
 
-		add_action( 'init', array( &$this, 'create_taxonomy' ) );
+                add_action( 'init', array( &$this, 'create_taxonomy' ) );
 
-		// shortcodes
+                // shortcodes
 
-		add_shortcode( 'mediacat', array( &$this, 'get_mediacategory_shortcode' ) );
+                add_shortcode( 'mediacat', array( &$this, 'get_mediacategory_shortcode' ) );
                 add_shortcode( 'mediacatform', array( &$this, 'get_mediacategoryform_shortcode' ) );
-	}
+        }
 
         /**
         *Flush rewrite rules function
@@ -114,8 +114,8 @@ class WPMediaCategoryLibrary {
         function flush_rewrite_rules(){
                 $rules = get_option( 'rewrite_rules' );
                 if ( ! isset( $rules[$rewrite_url . '/?$'] ) ) {
-			global $wp_rewrite;
-			$wp_rewrite->flush_rules();
+                        global $wp_rewrite;
+                        $wp_rewrite->flush_rules();
                 }
         }
 
@@ -125,14 +125,14 @@ class WPMediaCategoryLibrary {
         *@return void
         *@since 0.1
         */
-	function get_rewrite_url() {
-		$rewrite_url = 'mediacat\-library';
+        function get_rewrite_url() {
+                $rewrite_url = 'mediacat\-library';
                 if ( $this->settings_data['rewrite_url'] ) {
                         $rewrite_url = $this->settings_data['rewrite_url'];
                         $rewrite_url = str_replace( '-', '\-', $rewrite_url );
                 }
-		return $rewrite_url;
-	}
+                return $rewrite_url;
+        }
 
         /**
         *Rewrites function
@@ -232,13 +232,25 @@ class WPMediaCategoryLibrary {
         }
 
         /**
-        *Media category title loop
+        *Media category remove filters
         *
         *@return void
         *@since 0.1
         */
-        function media_category_title_loop() {
-                add_filter( 'the_title', array( &$this, 'media_category_title' ) );
+        function media_category_remove_filters() {
+                remove_filter( 'the_title', array( &$this, 'media_category_title' ) );
+                remove_filter( 'the_content', array( &$this, 'media_category_content' ) );
+        }
+
+        /**
+        *Media category add filters
+        *
+        *@return void
+        *@since 0.1
+        */
+        function media_category_add_filters() {
+                add_filter('the_title', array( &$this, 'media_category_title' ) );
+                add_filter('the_content', array( &$this, 'media_category_content' ) );
         }
 
         /**
@@ -265,34 +277,33 @@ class WPMediaCategoryLibrary {
                                 $_REQUEST['keyword'] = $wp->query_vars['mediacat_keyword'];
                         }
 
-			// set post count and tell WP that this is a page
+                        // set post count and tell WP that this is a page
 
                         global $wp_query;
                         $wp_query->post_count = 1;
-			$wp_query->is_page = true;
+                        $wp_query->is_page = true;
 
-			// add content
+                        // add content and titel
 
-			add_filter( 'the_content', array( &$this, 'media_category_content' ) );
+                        add_action( 'get_header', array( &$this, 'media_category_remove_filters' ) );
+                        add_action( 'get_sidebar', array( &$this, 'media_category_remove_filters' ) );
+                        add_action( 'get_footer', array( &$this, 'media_category_remove_filters' ) );
+                        add_action( 'loop_start', array( &$this, 'media_category_add_filters' ) );
+                        add_filter( 'wp_title', array( &$this, 'media_category_title' ) );
 
-			// add title
+                        // add body class
 
-			add_filter( 'loop_start', array( &$this, 'media_category_title_loop' ) );
-			add_filter( 'wp_title', array( &$this, 'media_category_title' ) );
+                        add_filter( 'body_class', array( &$this, 'body_class' ) );
 
-			// add body class
+                        // add css
 
-			add_filter( 'body_class', array( &$this, 'body_class' ) );
+                        if ( $this->settings_data['include_css'] != 'no' )
+                                wp_enqueue_style( 'wp-media-category-library', $this->get_plugin_url() . 'css/media-category-library.css' );
 
-			// add css
+                        // include page template
 
-			if ( $this->settings_data['include_css'] != 'no' )
-				wp_enqueue_style( 'wp-media-category-library', $this->get_plugin_url() . 'css/media-category-library.css' );
-
-			// include page template
-
-			include get_page_template();
-			exit;
+                        include get_page_template();
+                        exit;
                 }
                 elseif ( array_key_exists( 'mediacat_pages', $wp->query_vars ) ) {
                         if ( current_user_can( 'manage_options' ) ) {
@@ -340,111 +351,111 @@ class WPMediaCategoryLibrary {
                 }
         }
 
-	/**
-	*Create taxonomy
-	*
-	*@return void
-	*@since 0.1
-	*/
-	function create_taxonomy() {
-		$labels = array(
-				'name' => __( 'Media Category', self::nspace ),
-				'singular_name' => __( 'Media Category', self::nspace ),
-				'search_items' => __( 'Search Media Categories', self::nspace ),
-				'all_items' => __( 'All Media Categories', self::nspace ),
-				'parent_item' => __( 'Parent Media Category', self::nspace ),
-				'parent_item_colon' => __( 'Parent Media Category', self::nspace ),
-				'edit_item' => __( 'Edit Media Category', self::nspace ),
-				'update_item' => __( 'Update Media Category', self::nspace ),
-				'add_new_item' => __( 'Add New Media Category', self::nspace ),
-				'new_item_name' => __( 'New Media Category Name', self::nspace ),
-				'menu_name' => __( 'Media Category', self::nspace )
-			);
-		$args = array(
-				'hierarchical' => true,
-				'labels' => $labels,
-				'show_ui' => true,
-				'query_var' => true,
-				'rewrite' => true
-			);
-		register_taxonomy( $this->settings_data['taxonomy_name'], 'attachment', $args );
-	}
+        /**
+        *Create taxonomy
+        *
+        *@return void
+        *@since 0.1
+        */
+        function create_taxonomy() {
+                $labels = array(
+                                'name' => __( 'Media Category', self::nspace ),
+                                'singular_name' => __( 'Media Category', self::nspace ),
+                                'search_items' => __( 'Search Media Categories', self::nspace ),
+                                'all_items' => __( 'All Media Categories', self::nspace ),
+                                'parent_item' => __( 'Parent Media Category', self::nspace ),
+                                'parent_item_colon' => __( 'Parent Media Category', self::nspace ),
+                                'edit_item' => __( 'Edit Media Category', self::nspace ),
+                                'update_item' => __( 'Update Media Category', self::nspace ),
+                                'add_new_item' => __( 'Add New Media Category', self::nspace ),
+                                'new_item_name' => __( 'New Media Category Name', self::nspace ),
+                                'menu_name' => __( 'Media Category', self::nspace )
+                        );
+                $args = array(
+                                'hierarchical' => true,
+                                'labels' => $labels,
+                                'show_ui' => true,
+                                'query_var' => true,
+                                'rewrite' => true
+                        );
+                register_taxonomy( $this->settings_data['taxonomy_name'], 'attachment', $args );
+        }
 
-	/**
-	*Media category library
-	*
-	*@return void
-	*@since 0.1
-	*/
-	function mediacat_library ( $frontend = false ) {
-		global $wpdb;
-		if ( $_REQUEST['mediacat_document_id'] ) {
-			$date = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
-			$sql = "UPDATE wp_posts SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
-				"post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['mediacat_document_id'];
-			$wpdb->query( $sql );
-		}
+        /**
+        *Media category library
+        *
+        *@return void
+        *@since 0.1
+        */
+        function mediacat_library ( $frontend = false ) {
+                global $wpdb;
+                if ( $_REQUEST['mediacat_document_id'] ) {
+                        $date = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
+                        $sql = "UPDATE wp_posts SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
+                                "post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['mediacat_document_id'];
+                        $wpdb->query( $sql );
+                }
 
-		// set terms
+                // set terms
 
-		$selected_terms = array();
-		if ( $_REQUEST['cat'] ) $selected_terms[] = "'" . $wpdb->escape( $_REQUEST['cat'] ) . "'";
-		elseif ( $_REQUEST['media-categories'] ) {
-			foreach ( $_REQUEST['media-categories'] as $cat ) $selected_terms[] = "'" . $wpdb->escape( $cat ) . "'";
-		}
-		else foreach ( $this->get_media_categories() as $slug => $name ) $selected_terms[] = "'" . $wpdb->escape( $slug ) . "'";
+                $selected_terms = array();
+                if ( $_REQUEST['cat'] ) $selected_terms[] = "'" . $wpdb->escape( $_REQUEST['cat'] ) . "'";
+                elseif ( $_REQUEST['media-categories'] ) {
+                        foreach ( $_REQUEST['media-categories'] as $cat ) $selected_terms[] = "'" . $wpdb->escape( $cat ) . "'";
+                }
+                else foreach ( $this->get_media_categories() as $slug => $name ) $selected_terms[] = "'" . $wpdb->escape( $slug ) . "'";
 
-		// pagination settings
+                // pagination settings
 
-		$posts_per_page = 20;
-		$page = $_REQUEST['pnum'];
-		if ( ! $page ) $page = 0;
-		else $page -= 1;
-		$start = $page * $posts_per_page;
-		$start_record = $start + 1;
+                $posts_per_page = 20;
+                $page = $_REQUEST['pnum'];
+                if ( ! $page ) $page = 0;
+                else $page -= 1;
+                $start = $page * $posts_per_page;
+                $start_record = $start + 1;
 
-		// subquery for media categories
+                // subquery for media categories
 
-		if ( count( $selected_terms ) > 0 ) {
+                if ( count( $selected_terms ) > 0 ) {
 
-			// create sub query
+                        // create sub query
 
-			$sub_sql = "SELECT x.term_taxonomy_id FROM " . $wpdb->term_taxonomy . " AS x " .
-				"LEFT JOIN " . $wpdb->terms . " AS t ON x.term_id = t.term_id WHERE " .
-				"t.slug IN(" . implode( ",", $selected_terms ) . ")";
+                        $sub_sql = "SELECT x.term_taxonomy_id FROM " . $wpdb->term_taxonomy . " AS x " .
+                                "LEFT JOIN " . $wpdb->terms . " AS t ON x.term_id = t.term_id WHERE " .
+                                "t.slug IN(" . implode( ",", $selected_terms ) . ")";
 
-			// main query that uses subquery
+                        // main query that uses subquery
 
-			$sql = "SELECT SQL_CALC_FOUND_ROWS p.ID, p.post_title, p.post_mime_type, p.post_excerpt, p.post_date FROM " . $wpdb->posts . " AS p " .
-				"LEFT JOIN " . $wpdb->term_relationships . " AS r ON p.ID = r.object_id " .
-				"WHERE r.term_taxonomy_id IN($sub_sql) AND p.post_type='attachment' ";
+                        $sql = "SELECT SQL_CALC_FOUND_ROWS p.ID, p.post_title, p.post_mime_type, p.post_excerpt, p.post_date FROM " . $wpdb->posts . " AS p " .
+                                "LEFT JOIN " . $wpdb->term_relationships . " AS r ON p.ID = r.object_id " .
+                                "WHERE r.term_taxonomy_id IN($sub_sql) AND p.post_type='attachment' ";
 
-			// keyword
+                        // keyword
 
-			if ( $_REQUEST['keyword'] ) {
-				$where = array();
-				$k_fields = array( 'post_title', 'post_excerpt', 'post_content', 'guid' );
-				$keyword = "'%" . $wpdb->escape( $_REQUEST['keyword'] ) . "%'";
-				foreach ( $k_fields as $field ) $where[] = "$field LIKE $keyword";
-				$sql .= "AND (" . implode( " OR ", $where ) . ") ";
-			}
+                        if ( $_REQUEST['keyword'] ) {
+                                $where = array();
+                                $k_fields = array( 'post_title', 'post_excerpt', 'post_content', 'guid' );
+                                $keyword = "'%" . $wpdb->escape( $_REQUEST['keyword'] ) . "%'";
+                                foreach ( $k_fields as $field ) $where[] = "$field LIKE $keyword";
+                                $sql .= "AND (" . implode( " OR ", $where ) . ") ";
+                        }
 
-			// order by and limit for pagination
+                        // order by and limit for pagination
 
-			$sql .= "ORDER BY p.post_title LIMIT $start, " . $posts_per_page;
+                        $sql .= "ORDER BY p.post_title LIMIT $start, " . $posts_per_page;
 
-			//echo "<p>$sql</p>";
+                        //echo "<p>$sql</p>";
 
-			// get results, found rows, and total pages
+                        // get results, found rows, and total pages
 
-			$results = $wpdb->get_results( $sql, ARRAY_A );
-			$sql = 'SELECT FOUND_ROWS() AS found_rows';
-			$row = $wpdb->get_row( $sql, ARRAY_A );
-			$total_pages = ceil( $row['found_rows'] / $posts_per_page );
-		}
-		$pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
-		$this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
-	}
+                        $results = $wpdb->get_results( $sql, ARRAY_A );
+                        $sql = 'SELECT FOUND_ROWS() AS found_rows';
+                        $row = $wpdb->get_row( $sql, ARRAY_A );
+                        $total_pages = ceil( $row['found_rows'] / $posts_per_page );
+                }
+                $pagination = $this->get_mediacat_library_pagination( $total_pages, $page, $frontend );
+                $this->mediacat_library_list( $results, $row['found_rows'], $frontend, $start_record, $posts_per_page, $total_pages, $pagination );
+        }
 
         /**
         *Media categories library list
@@ -544,7 +555,7 @@ class WPMediaCategoryLibrary {
         *@since 0.1
         */
         function get_mediacategory_shortcode( $atts = array() ) {
-                ob_start(); 	
+                ob_start();     
                 $terms = get_terms( $this->settings_data['taxonomy_name'], array( 'hide_empty' => false ) );
                 $cats = explode( ',', $atts['cats'] );
                 $selected_terms = array();
