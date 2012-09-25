@@ -283,7 +283,7 @@ class WPMediaCategoryLibrary {
                         $wp_query->post_count = 1;
                         $wp_query->is_page = true;
 
-                        // add content and titel
+                        // add content and title
 
                         add_action( 'get_header', array( &$this, 'media_category_remove_filters' ) );
                         add_action( 'get_sidebar', array( &$this, 'media_category_remove_filters' ) );
