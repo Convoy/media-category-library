@@ -50,14 +50,15 @@
 #mediacat-library-search-form .radio-group label {
 	padding-right: .4em;
 	font-size: 0.875em;
-	line-height: 1em;	
+	line-height: 1em;
+	dispay: block;
 }
 .cols:after {
-    clear: both;
-    content: ".";
-    display: block;
-    height: 0;
-    visibility: hidden;
+	clear: both;
+	content: ".";
+	display: block;
+	height: 0;
+	visibility: hidden;
 }
 .col-table {
 	display: table;
@@ -105,18 +106,21 @@ button,
 	-webkit-appearance:none;
 }
 .pagination-details {
-    font-size: 0.857143em;
-    font-style: italic;
-    margin-top: 1em;
-    overflow: hidden;
+	font-size: 0.857143em;
+	font-style: italic;
+	margin-top: 1em;
+	overflow: hidden;
 }
 .pagination-pages, .pagination-records {
-    float: left;
-    margin-right: 1em;
-    width: 45%;
+	float: left;
+	margin-right: 1em;
+	width: 45%;
 }
 .pagination-pages {
-    float: right;
-    margin-right: 0;
-    text-align: right;
+	float: right;
+	margin-right: 0;
+	text-align: right;
+}
+body.mediacatlib table {
+	width: 100%;
 }

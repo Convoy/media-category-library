@@ -43,6 +43,7 @@ class MediaCategoryLibrary {
                 if ( ! @strlen( $this->settings_data['rewrite_url'] ) ) $this->settings_data['rewrite_url'] = 'mediacat-library';
                 if ( ! @strlen( $this->settings_data['taxonomy_name'] ) ) $this->settings_data['taxonomy_name'] = 'media-category';
                 if ( ! @strlen( $this->settings_data['title'] ) ) $this->settings_data['title'] = 'Media Category Library';
+                if ( ! ( $this->settings_data['posts_per_page'] > 0 ) ) $this->settings_data['posts_per_page'] = 20;
 
                 if ( is_admin() ) {
 
@@ -81,6 +82,11 @@ class MediaCategoryLibrary {
                                                                 'type' => 'select',
                                                                 'values' => array( 'yes' => 'Yes', 'no' => 'No' ),
                                                                 'default' => 'yes'
+                                                        ),
+                                                        'posts_per_page' => array(
+                                                                'label' => __( 'Posts per page (for frontend Media Category Library)', self::nspace ),
+                                                                'type' => 'text',
+                                                                'default' => '20'
                                                         )
                                                 );
                 }
@@ -407,7 +413,7 @@ class MediaCategoryLibrary {
 
                 // pagination settings
 
-                $posts_per_page = 20;
+                $posts_per_page = $this->settings_data['posts_per_page'];
                 $page = $_REQUEST['pnum'];
                 if ( ! $page ) $page = 0;
                 else $page -= 1;

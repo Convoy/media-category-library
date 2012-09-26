@@ -1,10 +1,10 @@
 jQuery(document).ready(function(){
         jQuery('#doc-library-cat').live('change', function() {
-                location.href = '/wp-admin/upload.php?page=wpmediacatlib-library&cat=' + jQuery(this).val();
+                location.href = '/wp-admin/upload.php?page=mediacatlib-library&cat=' + jQuery(this).val();
         });
         jQuery('#doc-library-search').live('click', function() {
                 var keyword = jQuery('#doc-library-keyword').val();
-                if(keyword.length) location.href = '/wp-admin/upload.php?page=wpmediacatlib-library&keyword=' + keyword;
+                if(keyword.length) location.href = '/wp-admin/upload.php?page=mediacatlib-library&keyword=' + keyword;
                 else alert('Please enter a keyword.');
         });
         jQuery("#doc-library-search-form").unbind('submit').bind('submit', function () {
