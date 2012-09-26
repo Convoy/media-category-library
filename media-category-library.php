@@ -1,6 +1,6 @@
 <?php
 /*
-Plugin Name: WP Media Category Library Plugin
+Plugin Name: Media Category Library
 Plugin URI: http://www.weareconvoy.com
 Description: WordPress plugin that allows items in Media Library to be assigned to a category.
 Author: Convoy
@@ -35,29 +35,29 @@ if ( preg_match( '#' . basename(__FILE__) . '#', $_SERVER['PHP_SELF'] ) ) die();
 
 // require base objects and do instantiation
 
-if ( !class_exists( 'WPMediaCategoryLibrary' ) ) {
+if ( !class_exists( 'MediaCategoryLibrary' ) ) {
         require_once( dirname( __FILE__ ) . '/classes/media-category-library.php' );
 }
-$wp_media_cat_lib = new WPMediaCategoryLibrary();
+$media_cat_lib = new MediaCategoryLibrary();
 
 // define plugin file path
 
-$wp_media_cat_lib->set_plugin_file( __FILE__ );
+$media_cat_lib->set_plugin_file( __FILE__ );
 
 // define directory name of plugin
 
-$wp_media_cat_lib->set_plugin_dir( basename( dirname( __FILE__ ) ) );
+$media_cat_lib->set_plugin_dir( basename( dirname( __FILE__ ) ) );
 
 // path to this plugin
 
-$wp_media_cat_lib->set_plugin_path( dirname( __FILE__ ) );
+$media_cat_lib->set_plugin_path( dirname( __FILE__ ) );
 
 // URL to plugin
 
-$wp_media_cat_lib->set_plugin_url( plugin_dir_url(__FILE__) );
+$media_cat_lib->set_plugin_url( plugin_dir_url(__FILE__) );
 
 // call init
 
-$wp_media_cat_lib->init();
+$media_cat_lib->init();
 
 ?>

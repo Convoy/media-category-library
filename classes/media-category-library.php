@@ -1,11 +1,11 @@
 <?php
 
-class WPMediaCategoryLibrary {
+class MediaCategoryLibrary {
 
         /**
         *Variables
         */
-        const nspace = 'wpmediacatlib';
+        const nspace = 'mediacatlib';
         const pname = 'Media Category Library';
         const term = 'mediacategory';
         const version = 0.1;
@@ -508,7 +508,7 @@ class WPMediaCategoryLibrary {
                 foreach ( array( 'cat','keyword' ) as $item ) {
                         if ( $_REQUEST[$item] ) $tmp[] = $item . '=' . rawurlencode( $_REQUEST[$item] );
                 }
-                $url = admin_url() . 'upload.php?page=wpmediacatlib-library';
+                $url = admin_url() . 'upload.php?page=mediacatlib-library';
                 if ( $tmp ) $url .= '&' . implode( '&', $tmp );
                 return $url;
         }
@@ -655,7 +655,7 @@ class WPMediaCategoryLibrary {
                                 );
                         wp_localize_script( 'wp-media-category', 'media_category', $args );
                 }
-                elseif ( $hook == 'media_page_wpmediacatlib-library' ) {
+                elseif ( $hook == 'media_page_mediacatlib-library' ) {
                         wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_url() . 'js/media-category-library.js', array( 'jquery' ), self::version, true );
                         wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );

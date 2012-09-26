@@ -1,7 +1,7 @@
-WordPress Media Category Library Plugin
+Media Category Library
 ==========
 
-*WordPress plugin that allows items in Media Library to be assigned to a category.*
+*WordPress plugin that allows items in the Media Library to be assigned to a category.*
 
 Features include:
 

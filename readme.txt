@@ -1,4 +1,4 @@
-=== WordPress Media Category Library Plugin ===
+=== Media Category Library ===
 Contributors: timmcdaniels
 Donate link: http://WeAreConvoy.com
 Tags: media library, attachments, upload date, media taxonomy
@@ -25,7 +25,7 @@ Features include:
 
 == Installation ==
 
-1. Upload `wp-media-category-library` folder to the `/wp-content/plugins/` directory
+1. Upload `media-category-library` folder to the `/wp-content/plugins/` directory
 1. Activate the plugin through the 'Plugins' menu in WordPress
 
 == Frequently Asked Questions ==
