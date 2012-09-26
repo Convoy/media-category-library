@@ -22,7 +22,7 @@
         $value = $this->get_settings_value( $key );
         if ( ! @strlen( $value ) ) $value = $val['default'];
 ?>
-                                <input name="<?php echo $key; ?>" type="<?php echo $val['type']; ?>" id="<?php echo $key; ?>" value="<?php echo stripslashes( htmlspecialchars( $value ) ); ?>" />
+                                <input name="<?php echo $key; ?>" type="<?php echo $val['type']; ?>" id="<?php echo $key; ?>" class="regular-text" value="<?php echo stripslashes( htmlspecialchars( $value ) ); ?>" />
 <?php elseif ( $val['type'] == 'select' ): ?>
 <?php
         $value = $this->get_settings_value( $key );
