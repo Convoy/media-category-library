@@ -2,7 +2,7 @@
 /*
 Plugin Name: Media Category Library
 Plugin URI: http://www.weareconvoy.com
-Description: WordPress plugin that allows items in Media Library to be assigned to a category.
+Description: WordPress plugin that allows items in the Media Library to be assigned to a category.
 Author: Convoy
 Version: 0.1
 Author: Tim McDaniels
