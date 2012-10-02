@@ -8,7 +8,7 @@ class MediaCategoryLibrary {
         const nspace = 'mediacatlib';
         const pname = 'Media Category Library';
         const term = 'mediacategory';
-        const version = 0.1;
+        const version = 0.2;
         protected $_plugin_file;
         protected $_plugin_dir;
         protected $_plugin_path;
@@ -33,6 +33,10 @@ class MediaCategoryLibrary {
         *@since 0.1
         */
         function init() {
+
+                // internationalize
+
+		add_action( 'init', array( &$this, 'internationalize' ) );
 
                 // settings data -- leave at top of constructor
 
@@ -59,32 +63,32 @@ class MediaCategoryLibrary {
 
                         $this->settings_fields = array(
                                                         'legend_1' => array(
-                                                                'label' => __( 'General Settings', self::nspace ),
+                                                                'label' => 'General Settings',
                                                                 'type' => 'legend'
                                                         ),
                                                         'taxonomy_name' => array(
-                                                                'label' => __( 'Taxonomy Name (should be all lowercase)', self::nspace ),
+                                                                'label' => 'Taxonomy Name (should be all lowercase)',
                                                                 'type' => 'text',
                                                                 'default' => 'media-category'
                                                         ),
                                                         'rewrite_url' => array(
-                                                                'label' => __( 'Media Category Library Rewrite URL', self::nspace ),
+                                                                'label' => 'Media Category Library Rewrite URL',
                                                                 'type' => 'text',
                                                                 'default' => 'mediacat-library'
                                                         ),
                                                         'title' => array(
-                                                                'label' => __( 'Media Category Library Title', self::nspace ),
+                                                                'label' => 'Media Category Library Title',
                                                                 'type' => 'text',
                                                                 'default' => 'Media Category Library'
                                                         ),
                                                         'include_css' => array(
-                                                                'label' => __( 'Include CSS', self::nspace ),
+                                                                'label' => 'Include CSS',
                                                                 'type' => 'select',
                                                                 'values' => array( 'yes' => 'Yes', 'no' => 'No' ),
                                                                 'default' => 'yes'
                                                         ),
                                                         'posts_per_page' => array(
-                                                                'label' => __( 'Posts per page (for frontend Media Category Library)', self::nspace ),
+                                                                'label' => 'Posts per page (for frontend Media Category Library)',
                                                                 'type' => 'text',
                                                                 'default' => '20'
                                                         )
@@ -110,6 +114,16 @@ class MediaCategoryLibrary {
                 add_shortcode( 'mediacat', array( &$this, 'get_mediacategory_shortcode' ) );
                 add_shortcode( 'mediacatform', array( &$this, 'get_mediacategoryform_shortcode' ) );
         }
+
+	/**
+        *Translation
+        *
+        *@return void
+        *@since 0.2
+        */
+	function internationalize() {
+		load_plugin_textdomain( self::nspace, false, $this->get_plugin_dir() . '/lang' );
+	}
 
         /**
         *Flush rewrite rules function
@@ -179,14 +193,26 @@ class MediaCategoryLibrary {
                 return $query_vars;
         }
 
+	/**
+        *WP title function
+        *
+        *@return string
+        *@since 0.1
+        */
+        function media_category_wp_title () {
+                return $this->media_category_title( true );
+        }
+
         /**
         *Title function
         *
         *@return string
         *@since 0.1
         */
-        function media_category_title () {
-                return $this->settings_data['title'];
+        function media_category_title ( $use_sep = false ) {
+		$title = $this->settings_data['title'];
+		if ( $use_sep ) $title .=  ' | ';
+                return $title;
         }
 
         /**
@@ -295,7 +321,7 @@ class MediaCategoryLibrary {
                         add_action( 'get_sidebar', array( &$this, 'media_category_remove_filters' ) );
                         add_action( 'get_footer', array( &$this, 'media_category_remove_filters' ) );
                         add_action( 'loop_start', array( &$this, 'media_category_add_filters' ) );
-                        add_filter( 'wp_title', array( &$this, 'media_category_title' ) );
+                        add_filter( 'wp_title', array( &$this, 'media_category_wp_title' ) );
 
                         // add body class
 
@@ -334,7 +360,7 @@ class MediaCategoryLibrary {
 <?php if ( $row['found_rows'] > 0 ): ?>
                 <ul style="list-style:disc; margin: 50px 0 0 100px;">
 <?php foreach ( $results as $result ): ?>
-                        <li><a href="<?php echo admin_url(); ?>post.php?post=<?php echo $result['ID']; ?>&action=edit"><?php echo get_the_title( $result['ID'] ); ?></a></li>
+                        <li><a href="<?php echo get_admin_url(); ?>post.php?post=<?php echo $result['ID']; ?>&action=edit"><?php echo get_the_title( $result['ID'] ); ?></a></li>
 <?php endforeach; ?>
                 </ul>
 
@@ -350,7 +376,7 @@ class MediaCategoryLibrary {
                 elseif ( array_key_exists( 'mediacat_del', $wp->query_vars ) ) {
                         if ( current_user_can( 'manage_options' ) && $wp->query_vars['mediacat_del'] > 0 && $wp->query_vars['attachment_id'] > 0 ) {
                                 wp_delete_term( $wp->query_vars['mediacat_del'], $this->settings_data['taxonomy_name'] );
-                                header( "Location: /wp-admin/media.php?attachment_id=" . $wp->query_vars['attachment_id'] . "&action=edit" );
+                                header( "Location: " . get_admin_url() . "/media.php?attachment_id=" . $wp->query_vars['attachment_id'] . "&action=edit" );
                         }
                         else echo 'Not authorized.';
                         exit;
@@ -397,7 +423,7 @@ class MediaCategoryLibrary {
                 global $wpdb;
                 if ( $_REQUEST['mediacat_document_id'] ) {
                         $date = $_REQUEST['year'] . '-' . $_REQUEST['month'] . '-' . $_REQUEST['day'];
-                        $sql = "UPDATE wp_posts SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
+                        $sql = "UPDATE " . $wpdb->posts . " SET post_date='$date 00:00:00',post_modified='$date 00:00:00',post_date_gmt='$date 00:00:00'," .
                                 "post_modified_gmt='$date 00:00:00' WHERE ID = " . $_REQUEST['mediacat_document_id'];
                         $wpdb->query( $sql );
                 }
@@ -413,7 +439,8 @@ class MediaCategoryLibrary {
 
                 // pagination settings
 
-                $posts_per_page = $this->settings_data['posts_per_page'];
+		$posts_per_page = get_option( 'posts_per_page' );
+		if ( $frontend ) $posts_per_page = $this->settings_data['posts_per_page'];
                 $page = $_REQUEST['pnum'];
                 if ( ! $page ) $page = 0;
                 else $page -= 1;
@@ -482,10 +509,8 @@ class MediaCategoryLibrary {
         function get_mediacat_library_pagination( $total_pages, $page, $frontend = false ) {
                 if ( ! $_REQUEST['pnum'] ) $_REQUEST['pnum'] = 1;
                 if ( ! $_REQUEST['media-categories'] ) $_REQUEST['media-categories'][] = 'none';
-                $prev_link = '/' . $this->settings_data['rewrite_url'] . '/' . ( $_REQUEST['pnum'] - 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
-                if ( $_REQUEST['keyword'] ) $prev_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
-                $next_link = '/' . $this->settings_data['rewrite_url'] . '/' . ( $_REQUEST['pnum'] + 1 ) . '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
-                if ( $_REQUEST['keyword'] ) $next_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
+                $next_link = $this->get_mediacat_next_link();
+                $prev_link = $this->get_mediacat_prev_link();
                 if ( ! $frontend ) {
                         $tmp = array();
                         if ( ! $_REQUEST['pnum'] ) $_REQUEST['pnum'] = 1;
@@ -502,6 +527,57 @@ class MediaCategoryLibrary {
                 elseif ( $total_pages > 1 ) return $next;
         }
 
+	/**
+        *Get next link
+        *
+        *@return void
+        *@since 0.2
+        */
+	function get_mediacat_base_url() {
+                $base_url = '../../../';
+                if ( basename( $_SERVER['REQUEST_URI'] ) == $this->settings_data['rewrite_url'] && get_option( 'permalink_structure' ) ) {
+                        $base_url = '../';
+                }
+                elseif ( ! get_option( 'permalink_structure' ) ) $base_url = '';
+                return $base_url;
+        }
+
+        /**
+        *Get next link
+        *
+        *@return void
+        *@since 0.2
+        */
+        function get_mediacat_next_link() {
+                $next_link = $this->get_mediacat_base_url() . '?mediacat_library=1&amp;mediacat_page=' . ( $_REQUEST['pnum'] + 1 ) . 
+                        '&amp;mediacats=' . implode( ',', $_REQUEST['media-categories'] );
+                if ( $_REQUEST['keyword'] ) $next_link .= '&amp;mediacat_keyword=' . rawurlencode( $_REQUEST['keyword'] );
+                if ( get_option('permalink_structure') ) {
+                        $next_link = $this->get_mediacat_base_url() . $this->settings_data['rewrite_url'] . '/' . ( $_REQUEST['pnum'] + 1 ) . 
+                                '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
+                        if ( $_REQUEST['keyword'] ) $next_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
+                }
+                return $next_link;
+        }
+
+        /**
+        *Get prev link
+        *
+        *@return void
+        *@since 0.2
+        */
+        function get_mediacat_prev_link() {
+                $prev_link = $this->get_mediacat_base_url() . '?mediacat_library=1&amp;mediacat_page=' . ( $_REQUEST['pnum'] - 1 ) . 
+                        '&amp;mediacats=' . implode( ',', $_REQUEST['media-categories'] );
+                if ( $_REQUEST['keyword'] ) $prev_link .= '&amp;mediacat_keyword=' . rawurlencode( $_REQUEST['keyword'] );
+                if ( get_option('permalink_structure') ) {
+                        $prev_link = $this->get_mediacat_base_url() . $this->settings_data['rewrite_url'] . '/' . ( $_REQUEST['pnum'] - 1 ) . 
+                                '/' . implode( ',', $_REQUEST['media-categories'] ) . '/';
+                        if ( $_REQUEST['keyword'] ) $prev_link .= rawurlencode( $_REQUEST['keyword'] ) . '/';
+                }
+                return $prev_link;
+        }
+
         /**
         *Admin url
         *
@@ -514,7 +590,7 @@ class MediaCategoryLibrary {
                 foreach ( array( 'cat','keyword' ) as $item ) {
                         if ( $_REQUEST[$item] ) $tmp[] = $item . '=' . rawurlencode( $_REQUEST[$item] );
                 }
-                $url = admin_url() . 'upload.php?page=mediacatlib-library';
+                $url = get_admin_url() . 'upload.php?page=mediacatlib-library';
                 if ( $tmp ) $url .= '&' . implode( '&', $tmp );
                 return $url;
         }
@@ -632,8 +708,8 @@ class MediaCategoryLibrary {
         */
         function add_admin_menus () {
                 if ( current_user_can( 'manage_options' ) ) {
-                        add_options_page( self::pname, self::pname, 'manage_options', self::nspace . '-settings', array( &$this, 'settings_page' ) );
-                        add_media_page( $this->settings_data['title'], $this->settings_data['title'], 'manage_options', self::nspace . '-library', array( &$this, 'mediacat_library' ) );
+                        add_options_page( __( self::pname, self::nspace ), __( self::pname, self::nspace ), 'manage_options', self::nspace . '-settings', array( &$this, 'settings_page' ) );
+                        add_media_page( __( self::pname, self::nspace ), __( self::pname, self::nspace ), 'manage_options', self::nspace . '-library', array( &$this, 'mediacat_library' ) );
                 }
         }
 
@@ -655,6 +731,7 @@ class MediaCategoryLibrary {
                                         'add_label' => __( 'Add/Edit Category', self::nspace ),
                                         'del_label' => __( 'Delete Category', self::nspace ),
                                         'plugin_url' => $this->get_plugin_url(),
+                                        'admin_url' => get_admin_url(),
                                         'taxonomy_name' => $this->settings_data['taxonomy_name'],
                                         'options' => $options,
                                         'cats' => $cats
@@ -663,6 +740,12 @@ class MediaCategoryLibrary {
                 }
                 elseif ( $hook == 'media_page_mediacatlib-library' ) {
                         wp_enqueue_script( 'wp-media-category-library', $this->get_plugin_url() . 'js/media-category-library.js', array( 'jquery' ), self::version, true );
+                        $args = array(
+                                        'plugin_url' => $this->get_plugin_url(),
+                                        'admin_url' => get_admin_url()
+                                );
+                        wp_localize_script( 'wp-media-category-library', 'media_category_library', $args );
+
                         wp_enqueue_script( 'thickbox' );
 			wp_enqueue_style( 'thickbox' );
                 }

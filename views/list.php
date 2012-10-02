@@ -5,7 +5,7 @@
 <br clear="all">
 <div class="wrap">
         <div class="icon32" id="icon-upload"><br></div>
-        <h2><?php _e( self::pname, self::nspace ); ?> <a href="<?php echo admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
+        <h2><?php _e( self::pname, self::nspace ); ?> <a href="<?php echo get_admin_url(); ?>media-new.php" class="add-new-h2"><?php _e( 'Add New', self::nspace ); ?></a></h2>
         <div class="tablenav top">
                 <form id="doc-library-search-form">
                 <div class="alignleft actions">
@@ -106,9 +106,9 @@
 <?php if ( ! $frontend ): ?>
                                 <td>
                                         <ul>
-                                                <li><a href="<?php echo admin_url(); ?>media.php?attachment_id=<?php echo $result['ID']; ?>&amp;action=edit"><?php _e( 'Edit', self::nspace ); ?></a></li>
+                                                <li><a href="<?php echo get_admin_url(); ?>media.php?attachment_id=<?php echo $result['ID']; ?>&amp;action=edit"><?php _e( 'Edit', self::nspace ); ?></a></li>
                                                 <li><a href="<?php echo wp_nonce_url( "post.php?action=delete&amp;post=" . $result['ID'], 'delete-attachment_' . $result['ID'] ); ?>" class="delete-file"><?php _e( 'Delete', self::nspace ); ?></a></li>
-                                                <li><a class="thickbox" href="/mediacat-pages/<?php echo $result['ID']; ?>/"><?php _e( 'Pages', self::nspace ); ?></a></li>
+                                                <li><a class="thickbox" href="../?mediacat_pages=1&amp;attachment_id=<?php echo $result['ID']; ?>"><?php _e( 'Pages', self::nspace ); ?></a></li>
                                         </ul>
                                 </td>
 <?php endif; ?>

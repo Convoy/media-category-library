@@ -9,9 +9,9 @@
 <?php foreach ( $this->settings_fields as $key => $val ): ?>
                         <tr valign="top">
 <?php if ( $val['type'] == 'legend' ): ?>
-                            <th colspan="2" class="legend" scope="row"><strong><?php echo $val['label']; ?></strong></th>
+                            <th colspan="2" class="legend" scope="row"><strong><?php echo __( $val['label'], self::nspace ); ?></strong></th>
 <?php else: ?>
-                            <th scope="row"><label for="<?php echo $key; ?>"><?php echo $val['label']; ?></label></th>
+                            <th scope="row"><label for="<?php echo $key; ?>"><?php echo __( $val['label'], self::nspace ); ?></label></th>
                             <td>
 <?php if( $val['type'] == 'money'): ?>
                                 <span class="dollar-sign">$</span>

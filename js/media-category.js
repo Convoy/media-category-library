@@ -30,7 +30,7 @@ jQuery(document).ready(function() {
                 var val = field.val();
                 var cat_id = media_category.cats[val];
                 if(confirm('Are you sure that you want to delete the category, ' + val + '?')) {
-                        location.href = '/mediacat-del/' + cat_id + '/' + id + '/';
+                        location.href = '../?mediacat_del=' + cat_id + '&amp;attachment_id=' + id;;
                 }
                 return false;
         });

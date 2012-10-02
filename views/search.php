@@ -1,5 +1,5 @@
                 <h1 id="mediacat-library-search-details"><?php _e( 'Search', 'convoy-theme' ); ?></h1>
-	        <form id="mediacat-library-search-form" action="/<?php echo $this->settings_data['rewrite_url']; ?>/" method="post">
+	        <form id="mediacat-library-search-form" action="<?php if ( get_option( 'permalink_structure' ) ): ?><?php echo $this->settings_data['rewrite_url']; ?>/<?php else: ?>?mediacat_library=1<?php endif; ?>" method="post">
 	                <div class="cols two-cols">
 	                        <fieldset class="col first-col">
 	                                <legend><?php _e( 'Category', 'convoy-theme' ); ?></legend>
