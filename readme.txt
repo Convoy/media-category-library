@@ -1,5 +1,5 @@
 === Media Category Library ===
-Contributors: timmcdaniels
+Contributors: timmcdaniels, cbryantryback
 Donate link: http://WeAreConvoy.com
 Tags: media library, attachments, upload date, media taxonomy
 Requires at least: 3.0.1
